@@ -5,6 +5,7 @@ import { kickRoute } from './routes/kick';
 import { crlRoute } from './routes/crl';
 import { connectProxyRoute } from './routes/connect-proxy';
 import { disconnectProxyRoute } from './routes/disconnect-proxy';
+import { authVerifyRoute } from './routes/auth-verify';
 
 const app = express();
 app.use(express.json());
@@ -26,6 +27,7 @@ app.use('/kick', kickRoute);
 app.use('/crl', crlRoute);
 app.use('/connect-proxy', connectProxyRoute);
 app.use('/disconnect-proxy', disconnectProxyRoute);
+app.use('/auth-verify', authVerifyRoute);
 
 const PORT = parseInt(process.env.AGENT_PORT || '3001', 10);
 

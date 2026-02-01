@@ -20,6 +20,22 @@ export class ConfigDeliveryService {
     });
   }
 
+  async getNodeProfile(vpnNodeId: string, userId: string) {
+    const node = await this.prisma.vpnNode.findUnique({ where: { id: vpnNodeId } });
+    if (!node) throw new NotFoundException('VPN node not found');
+
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      include: { entitlement: true },
+    });
+    if (!user) throw new NotFoundException('User not found');
+    if (!user.entitlement || !user.entitlement.isActive) {
+      throw new BadRequestException('You need an active subscription to download VPN profiles');
+    }
+
+    return this.pki.buildNodeProfile(node.hostname, node.port);
+  }
+
   async generateConfig(userId: string, deviceName: string, vpnNodeId: string) {
     // Validate the node exists
     const node = await this.prisma.vpnNode.findUnique({ where: { id: vpnNodeId } });

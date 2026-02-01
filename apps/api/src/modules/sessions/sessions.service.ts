@@ -1,4 +1,5 @@
-import { Injectable, ForbiddenException, NotFoundException, Logger } from '@nestjs/common';
+import { Injectable, ForbiddenException, NotFoundException, UnauthorizedException, Logger } from '@nestjs/common';
+import * as argon2 from 'argon2';
 import { PrismaService } from '../../common/prisma.service';
 import { getResellerSubtreeIds } from '../../common/reseller-scope.util';
 
@@ -8,28 +9,43 @@ export class SessionsService {
 
   constructor(private prisma: PrismaService) {}
 
-  async connect(data: { commonName: string; realAddress: string; vpnNodeId: string }) {
-    // Find certificate by commonName
-    const cert = await this.prisma.certificate.findUnique({
-      where: { commonName: data.commonName },
-      include: { user: { include: { entitlement: { include: { package: true } } } } },
+  async vpnAuth(username: string, password: string) {
+    const user = await this.prisma.user.findUnique({
+      where: { username },
+      include: { entitlement: true },
     });
 
-    if (!cert) throw new ForbiddenException('Certificate not found');
-    if (cert.revokedAt) throw new ForbiddenException('Certificate revoked');
-    if (!cert.user.isActive) throw new ForbiddenException('User inactive');
-    if (cert.user.expiresAt && cert.user.expiresAt < new Date()) throw new ForbiddenException('Account expired');
-    if (!cert.user.entitlement?.isActive) throw new ForbiddenException('No active entitlement');
+    if (!user) throw new UnauthorizedException('Invalid credentials');
+    const valid = await argon2.verify(user.passwordHash, password);
+    if (!valid) throw new UnauthorizedException('Invalid credentials');
+    if (!user.isActive) throw new ForbiddenException('User inactive');
+    if (user.expiresAt && user.expiresAt < new Date()) throw new ForbiddenException('Account expired');
+    if (!user.entitlement?.isActive) throw new ForbiddenException('No active entitlement');
 
-    const maxConnections = cert.user.entitlement.maxConnections;
+    return { ok: true, username: user.username };
+  }
+
+  async connect(data: { commonName: string; realAddress: string; vpnNodeId: string }) {
+    // commonName now holds the username (via username-as-common-name)
+    const user = await this.prisma.user.findUnique({
+      where: { username: data.commonName },
+      include: { entitlement: { include: { package: true } } },
+    });
+
+    if (!user) throw new ForbiddenException('User not found');
+    if (!user.isActive) throw new ForbiddenException('User inactive');
+    if (user.expiresAt && user.expiresAt < new Date()) throw new ForbiddenException('Account expired');
+    if (!user.entitlement?.isActive) throw new ForbiddenException('No active entitlement');
+
+    const maxConnections = user.entitlement.maxConnections;
 
     // Use serializable transaction with row-level locking
     return this.prisma.$transaction(async (tx) => {
       // Lock user row
-      await tx.$queryRaw`SELECT id FROM "User" WHERE id = ${cert.userId} FOR UPDATE`;
+      await tx.$queryRaw`SELECT id FROM "User" WHERE id = ${user.id} FOR UPDATE`;
 
       const activeSessions = await tx.vpnSession.findMany({
-        where: { userId: cert.userId, disconnectedAt: null },
+        where: { userId: user.id, disconnectedAt: null },
         orderBy: { connectedAt: 'asc' },
       });
 
@@ -41,9 +57,9 @@ export class SessionsService {
 
       return tx.vpnSession.create({
         data: {
-          userId: cert.userId,
+          userId: user.id,
           vpnNodeId: data.vpnNodeId,
-          certificateId: cert.id,
+          certificateId: null,
           commonName: data.commonName,
           realAddress: data.realAddress,
         },

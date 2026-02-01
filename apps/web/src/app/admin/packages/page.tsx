@@ -51,21 +51,25 @@ export default function PackagesPage() {
 
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
-    await api('/packages', {
-      method: 'POST',
-      body: JSON.stringify({
-        name: form.name,
-        duration: form.duration,
-        description: form.description,
-        maxConnections: parseInt(form.maxConnections),
-        maxDevices: parseInt(form.maxDevices),
-        priceMonthly: parseDollarsToCents(form.price),
-        creditCost: parseInt(form.creditCost) || 0,
-      }),
-    });
-    setShowCreate(false);
-    setForm({ ...EMPTY_FORM });
-    load();
+    try {
+      await api('/packages', {
+        method: 'POST',
+        body: JSON.stringify({
+          name: form.name,
+          duration: form.duration,
+          description: form.description,
+          maxConnections: parseInt(form.maxConnections),
+          maxDevices: parseInt(form.maxDevices),
+          priceMonthly: parseDollarsToCents(form.price),
+          creditCost: parseInt(form.creditCost) || 0,
+        }),
+      });
+      setShowCreate(false);
+      setForm({ ...EMPTY_FORM });
+      load();
+    } catch (err: any) {
+      alert(err.message || 'Failed to create package');
+    }
   };
 
   const handleDelete = async (pkg: any) => {
@@ -89,20 +93,24 @@ export default function PackagesPage() {
 
   const handleEdit = async (e: React.FormEvent) => {
     e.preventDefault();
-    await api(`/packages/${editingId}`, {
-      method: 'PATCH',
-      body: JSON.stringify({
-        name: editForm.name,
-        duration: editForm.duration,
-        description: editForm.description,
-        maxConnections: parseInt(editForm.maxConnections),
-        maxDevices: parseInt(editForm.maxDevices),
-        priceMonthly: parseDollarsToCents(editForm.price),
-        creditCost: parseInt(editForm.creditCost) || 0,
-      }),
-    });
-    setEditingId(null);
-    load();
+    try {
+      await api(`/packages/${editingId}`, {
+        method: 'PATCH',
+        body: JSON.stringify({
+          name: editForm.name,
+          duration: editForm.duration,
+          description: editForm.description,
+          maxConnections: parseInt(editForm.maxConnections),
+          maxDevices: parseInt(editForm.maxDevices),
+          priceMonthly: parseDollarsToCents(editForm.price),
+          creditCost: parseInt(editForm.creditCost) || 0,
+        }),
+      });
+      setEditingId(null);
+      load();
+    } catch (err: any) {
+      alert(err.message || 'Failed to update package');
+    }
   };
 
   const renderForm = (

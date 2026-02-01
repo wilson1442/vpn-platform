@@ -17,6 +17,18 @@ export class ConfigDeliveryController {
     return this.configDelivery.getAvailableNodes();
   }
 
+  @Get('nodes/:vpnNodeId/download')
+  async downloadNodeProfile(
+    @Param('vpnNodeId') vpnNodeId: string,
+    @CurrentUser() user: any,
+    @Res() res: Response,
+  ) {
+    const config = await this.configDelivery.getNodeProfile(vpnNodeId, user.sub);
+    res.setHeader('Content-Type', 'application/x-openvpn-profile');
+    res.setHeader('Content-Disposition', 'attachment; filename="vpn.ovpn"');
+    res.send(config);
+  }
+
   @Post('generate')
   async generateConfig(
     @CurrentUser() user: any,

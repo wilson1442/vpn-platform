@@ -192,6 +192,29 @@ export class PkiService {
     return { crlPem: ca.crlPem, crlVersion: ca.crlVersion };
   }
 
+  async buildNodeProfile(nodeHostname: string, nodePort: number) {
+    const ca = await this.getCA();
+
+    return `client
+dev tun
+proto udp
+remote ${nodeHostname} ${nodePort}
+resolv-retry infinite
+nobind
+persist-key
+persist-tun
+remote-cert-tls server
+cipher AES-256-GCM
+auth SHA256
+auth-user-pass
+verb 3
+
+<ca>
+${ca.caCertPem.trim()}
+</ca>
+`;
+  }
+
   async buildOvpnConfig(certId: string, nodeHostname: string, nodePort: number) {
     const certRecord = await this.prisma.certificate.findUnique({ where: { id: certId } });
     if (!certRecord) throw new NotFoundException('Certificate not found');

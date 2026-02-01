@@ -290,19 +290,36 @@ export class NodeInstallerService {
 
       // Step 9: Write server.conf
       this.log(jobId, '--- Step 9: Writing OpenVPN server configuration ---');
-      const serverConf = this.buildServerConf(node.port, node.mgmtPort);
+      const serverConf = this.buildServerConf(node.port, node.mgmtPort, node.agentToken, node.agentPort);
       await this.sftpWriteFile(sftp, '/etc/openvpn/server.conf', serverConf);
       this.log(jobId, '  written: /etc/openvpn/server.conf');
 
-      // Step 10: Upload connect/disconnect scripts to /etc/openvpn/scripts/
+      // Step 10: Upload connect/disconnect/auth scripts to /etc/openvpn/scripts/
       this.log(jobId, '--- Step 10: Uploading OpenVPN scripts ---');
       const connectScript = await readFile(join(baseDir, 'node-agent', 'src', 'scripts', 'client-connect.sh'), 'utf-8');
       const disconnectScript = await readFile(join(baseDir, 'node-agent', 'src', 'scripts', 'client-disconnect.sh'), 'utf-8');
+      const authScript = await readFile(join(baseDir, 'node-agent', 'src', 'scripts', 'auth-user-pass.sh'), 'utf-8');
       await this.sftpWriteFile(sftp, '/etc/openvpn/scripts/client-connect.sh', connectScript);
       await this.sftpWriteFile(sftp, '/etc/openvpn/scripts/client-disconnect.sh', disconnectScript);
+      await this.sftpWriteFile(sftp, '/etc/openvpn/scripts/auth-user-pass.sh', authScript);
 
-      // Step 11: chmod scripts + fix key permissions
-      code = await this.execSsh(conn, 'chmod +x /etc/openvpn/scripts/*.sh && chmod 600 /etc/openvpn/server.key', jobId);
+      // Step 11: chmod scripts + fix key permissions + create tmp dir for auth via-file
+      code = await this.execSsh(conn, 'chmod +x /etc/openvpn/scripts/*.sh && chmod 600 /etc/openvpn/server.key && mkdir -p /etc/openvpn/tmp && chmod 1777 /etc/openvpn/tmp', jobId);
+
+      // Step 11b: Configure AppArmor local override for OpenVPN (if AppArmor is active)
+      this.log(jobId, '--- Step 11b: Configuring AppArmor for OpenVPN ---');
+      const apparmorOverride = `# VPN Platform: allow temp files and script execution
+file rw /etc/openvpn/tmp/**,
+file rix /etc/openvpn/scripts/*.sh,
+file rix /usr/bin/curl,
+file rix /usr/bin/logger,
+file rix /usr/bin/sed,
+file rix /usr/bin/bash,
+file rix /usr/bin/tail,
+`;
+      await this.sftpMkdirp(sftp, '/etc/apparmor.d/local');
+      await this.sftpWriteFile(sftp, '/etc/apparmor.d/local/openvpn', apparmorOverride);
+      await this.execSsh(conn, 'if command -v apparmor_parser >/dev/null 2>&1 && [ -f /etc/apparmor.d/openvpn ]; then apparmor_parser -r /etc/apparmor.d/openvpn && echo "AppArmor profile reloaded"; else echo "AppArmor not active or no openvpn profile, skipping"; fi', jobId);
 
       // Step 12: Write CRL
       this.log(jobId, '--- Step 12: Writing initial CRL ---');
@@ -485,7 +502,7 @@ export class NodeInstallerService {
     }
   }
 
-  private buildServerConf(port: number, mgmtPort: number): string {
+  private buildServerConf(port: number, mgmtPort: number, agentToken: string, agentPort: number): string {
     return `port ${port}
 proto udp
 dev tun
@@ -496,6 +513,9 @@ key /etc/openvpn/server.key
 dh /etc/openvpn/dh.pem
 
 crl-verify /etc/openvpn/crl.pem
+
+verify-client-cert none
+username-as-common-name
 
 topology subnet
 server 10.8.0.0 255.255.255.0
@@ -515,9 +535,15 @@ verb 3
 status /var/log/openvpn/status.log
 log-append /var/log/openvpn/openvpn.log
 
-script-security 2
+tmp-dir /etc/openvpn/tmp
+
+script-security 3
+auth-user-pass-verify /etc/openvpn/scripts/auth-user-pass.sh via-file
 client-connect /etc/openvpn/scripts/client-connect.sh
 client-disconnect /etc/openvpn/scripts/client-disconnect.sh
+
+setenv AGENT_URL http://127.0.0.1:${agentPort}
+setenv AGENT_TOKEN ${agentToken}
 
 management 127.0.0.1 ${mgmtPort}
 `;
@@ -546,6 +572,9 @@ WantedBy=multi-user.target
 
   private buildOpenvpnOverride(agentToken: string, agentPort: number): string {
     return `[Service]
+PrivateTmp=false
+ExecStart=
+ExecStart=/usr/sbin/openvpn --daemon ovpn-%i --status /run/openvpn/%i.status 10 --cd /etc/openvpn --script-security 3 --config /etc/openvpn/%i.conf --writepid /run/openvpn/%i.pid
 Environment="AGENT_URL=http://127.0.0.1:${agentPort}"
 Environment="AGENT_TOKEN=${agentToken}"
 `;

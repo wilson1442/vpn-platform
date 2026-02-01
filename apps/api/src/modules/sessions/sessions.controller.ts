@@ -7,6 +7,12 @@ import { Roles, AgentAuth, CurrentUser } from '../../common/decorators';
 export class SessionsController {
   constructor(private sessions: SessionsService) {}
 
+  @Post('vpn-auth')
+  @AgentAuth()
+  vpnAuth(@Body() body: { username: string; password: string }) {
+    return this.sessions.vpnAuth(body.username, body.password);
+  }
+
   @Post('connect')
   @AgentAuth()
   connect(@Req() req: any, @Body() body: { commonName: string; realAddress: string }) {
