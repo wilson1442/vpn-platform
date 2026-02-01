@@ -1,0 +1,89 @@
+version: "3.9"
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: vpn
+      POSTGRES_PASSWORD: vpn_secret
+      POSTGRES_DB: vpn_platform
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U vpn -d vpn_platform"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redisdata:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  mailhog:
+    image: mailhog/mailhog:latest
+    ports:
+      - "1025:1025"
+      - "8025:8025"
+
+  api:
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+    ports:
+      - "3000:3000"
+    environment:
+      DATABASE_URL: postgresql://vpn:vpn_secret@postgres:5432/vpn_platform
+      REDIS_HOST: redis
+      REDIS_PORT: "6379"
+      SMTP_HOST: mailhog
+      SMTP_PORT: "1025"
+      SMTP_FROM: noreply@vpn-platform.local
+      CORS_ORIGIN: http://localhost:3100
+      PKI_ENCRYPTION_KEY: ${PKI_ENCRYPTION_KEY:-a]3Hk9L!mZ@qW2vB8nR5tY7uI0oP4sD6}
+      JWT_SECRET: ${JWT_SECRET:-super-secret-jwt-key-change-me}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  web:
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile
+    ports:
+      - "3100:3100"
+    environment:
+      NEXT_PUBLIC_API_URL: http://localhost:3000
+    depends_on:
+      - api
+
+  node-agent:
+    build:
+      context: .
+      dockerfile: apps/node-agent/Dockerfile
+    ports:
+      - "3001:3001"
+    environment:
+      AGENT_TOKEN: ${AGENT_TOKEN:-}
+      AGENT_API_BASE_URL: http://api:3000
+      AGENT_PORT: "3001"
+      MGMT_HOST: "127.0.0.1"
+      MGMT_PORT: "7505"
+      CRL_PATH: /etc/openvpn/crl.pem
+    depends_on:
+      - api
+
+volumes:
+  pgdata:
+  redisdata:

@@ -1,0 +1,3 @@
+-- AlterTable
+ALTER TABLE "VpnNode" ADD COLUMN "sshPort" INTEGER NOT NULL DEFAULT 22;
+ALTER TABLE "VpnNode" ADD COLUMN "installStatus" TEXT;

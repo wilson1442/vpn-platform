@@ -1,0 +1,74 @@
+# OpenVPN Server Configuration — VPN Platform Integration
+# Copy this alongside your existing server.conf or merge the relevant directives.
+
+port 1194
+proto udp
+dev tun
+
+# PKI — managed by the platform CA
+ca /etc/openvpn/ca.crt
+cert /etc/openvpn/server.crt
+key /etc/openvpn/server.key
+dh /etc/openvpn/dh.pem
+
+# CRL — auto-distributed by the node-agent
+crl-verify /etc/openvpn/crl.pem
+
+# Network
+server 10.8.0.0 255.255.255.0
+push "redirect-gateway def1 bypass-dhcp"
+push "dhcp-option DNS 1.1.1.1"
+push "dhcp-option DNS 8.8.8.8"
+
+# Security
+cipher AES-256-GCM
+auth SHA256
+tls-version-min 1.2
+
+# Keepalive
+keepalive 10 120
+
+# Persist
+persist-key
+persist-tun
+
+# Logging
+verb 3
+status /var/log/openvpn/status.log
+log-append /var/log/openvpn/openvpn.log
+
+# =============================================================================
+# VPN PLATFORM INTEGRATION — required for session enforcement
+# =============================================================================
+
+# Allow calling external scripts
+script-security 2
+
+# Session enforcement scripts
+# These scripts call the local node-agent which proxies to the API.
+# The agent decides whether to allow or deny the connection.
+client-connect /etc/openvpn/scripts/client-connect.sh
+client-disconnect /etc/openvpn/scripts/client-disconnect.sh
+
+# Management interface — required for kick mechanism
+# The node-agent connects to this socket to kill sessions.
+management 127.0.0.1 7505
+
+# =============================================================================
+# ENVIRONMENT SETUP
+# =============================================================================
+# The scripts need AGENT_URL and AGENT_TOKEN environment variables.
+# Set these in the OpenVPN systemd unit override:
+#
+#   sudo systemctl edit openvpn@server
+#
+#   [Service]
+#   Environment="AGENT_URL=http://127.0.0.1:3001"
+#   Environment="AGENT_TOKEN=<your-node-agent-token>"
+#
+# Or create a wrapper script at /etc/openvpn/scripts/env.sh:
+#
+#   export AGENT_URL="http://127.0.0.1:3001"
+#   export AGENT_TOKEN="<your-node-agent-token>"
+#
+# And source it in each script, or set the vars in /etc/default/openvpn.

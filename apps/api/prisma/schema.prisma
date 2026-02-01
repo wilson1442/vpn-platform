@@ -1,0 +1,243 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  ADMIN
+  RESELLER
+  USER
+}
+
+enum LedgerEntryType {
+  ADD
+  DEDUCT
+  REFUND
+  TRANSFER
+}
+
+enum InvoiceStatus {
+  PENDING
+  PAID
+  CANCELLED
+}
+
+model User {
+  id             String       @id @default(uuid())
+  username       String       @unique
+  email          String?      @unique
+  passwordHash   String
+  role           Role         @default(USER)
+  resellerId     String?
+  entitlementId  String?      @unique
+  isActive       Boolean      @default(true)
+  expiresAt      DateTime?
+  lastLoginAt    DateTime?
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  reseller       Reseller?    @relation("ResellerUsers", fields: [resellerId], references: [id])
+  entitlement    Entitlement? @relation(fields: [entitlementId], references: [id])
+  resellerProfile Reseller?   @relation("UserReseller")
+  refreshTokens  RefreshToken[]
+  certificates   Certificate[]
+  vpnSessions    VpnSession[]
+  auditLogs      AuditLog[]   @relation("AuditActor")
+
+  @@index([resellerId])
+}
+
+model RefreshToken {
+  id        String   @id @default(uuid())
+  tokenHash String   @unique
+  userId    String
+  expiresAt DateTime
+  revokedAt DateTime?
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model Reseller {
+  id          String   @id @default(uuid())
+  userId      String   @unique
+  companyName String
+  parentId    String?
+  maxDepth    Int      @default(3)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  user     User      @relation("UserReseller", fields: [userId], references: [id])
+  parent   Reseller? @relation("ResellerTree", fields: [parentId], references: [id])
+  children Reseller[] @relation("ResellerTree")
+  users    User[]     @relation("ResellerUsers")
+  packages Package[]
+  creditLedgerEntries CreditLedgerEntry[]
+  invoices Invoice[]
+
+  @@index([parentId])
+}
+
+model VpnNode {
+  id              String    @id @default(uuid())
+  name            String    @unique
+  hostname        String
+  port            Int       @default(1194)
+  agentPort       Int       @default(3001)
+  agentToken      String    @unique @default(uuid())
+  mgmtPort        Int       @default(7505)
+  sshPort         Int       @default(22)
+  installStatus   String?
+  crlVersion      Int       @default(0)
+  lastHeartbeatAt DateTime?
+  isActive        Boolean   @default(true)
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  vpnSessions VpnSession[]
+}
+
+model CertificateAuthority {
+  id             String @id @default(uuid())
+  caCertPem      String
+  caKeyEncrypted String
+  serialCounter  Int    @default(1)
+  crlPem         String @default("")
+  crlVersion     Int    @default(0)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+}
+
+model Certificate {
+  id           String    @id @default(uuid())
+  userId       String
+  commonName   String    @unique
+  certPem      String
+  keyEncrypted String
+  serialNumber String    @unique
+  revokedAt    DateTime?
+  createdAt    DateTime  @default(now())
+
+  user        User         @relation(fields: [userId], references: [id])
+  vpnSessions VpnSession[]
+
+  @@index([userId])
+}
+
+model VpnSession {
+  id             String    @id @default(uuid())
+  userId         String
+  vpnNodeId      String
+  certificateId  String?
+  commonName     String
+  realAddress    String
+  bytesReceived  BigInt    @default(0)
+  bytesSent      BigInt    @default(0)
+  connectedAt    DateTime  @default(now())
+  disconnectedAt DateTime?
+  kickedReason   String?
+
+  user        User        @relation(fields: [userId], references: [id])
+  vpnNode     VpnNode     @relation(fields: [vpnNodeId], references: [id])
+  certificate Certificate? @relation(fields: [certificateId], references: [id])
+
+  @@index([userId])
+  @@index([vpnNodeId])
+  @@index([commonName])
+}
+
+model Package {
+  id             String  @id @default(uuid())
+  name           String
+  duration       String  @default("1m")
+  description    String  @default("")
+  maxConnections Int     @default(1)
+  maxDevices     Int     @default(3)
+  priceMonthly   Int     @default(0)
+  creditCost     Int     @default(0)
+  stripePriceId  String?
+  resellerId     String?
+  isActive       Boolean @default(true)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  reseller     Reseller?     @relation(fields: [resellerId], references: [id])
+  entitlements Entitlement[]
+
+  @@map("Plan")
+  @@index([resellerId])
+}
+
+model Entitlement {
+  id             String  @id @default(uuid())
+  packageId      String  @map("planId")
+  maxConnections Int
+  maxDevices     Int
+  isActive       Boolean @default(true)
+  stripeSubId    String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  package Package @relation(fields: [packageId], references: [id])
+  user    User?
+}
+
+model CreditLedgerEntry {
+  id           String          @id @default(uuid())
+  resellerId   String
+  type         LedgerEntryType
+  amount       Int
+  balanceAfter Int
+  description  String          @default("")
+  createdAt    DateTime        @default(now())
+
+  reseller Reseller @relation(fields: [resellerId], references: [id])
+
+  @@index([resellerId])
+}
+
+model Invoice {
+  id           String        @id @default(uuid())
+  resellerId   String
+  amountCents  Int
+  status       InvoiceStatus @default(PENDING)
+  stripeInvId  String?
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+
+  reseller Reseller @relation(fields: [resellerId], references: [id])
+
+  @@index([resellerId])
+}
+
+model AppSettings {
+  id         String   @id @default("singleton")
+  siteName   String   @default("VPN Platform")
+  logoPath   String?
+  licenseKey String?
+  githubRepo String   @default("")
+  updatedAt  DateTime @updatedAt
+}
+
+model AuditLog {
+  id         String   @id @default(uuid())
+  actorId    String?
+  action     String
+  targetType String?
+  targetId   String?
+  metadata   Json?
+  ipAddress  String?
+  createdAt  DateTime @default(now())
+
+  actor User? @relation("AuditActor", fields: [actorId], references: [id])
+
+  @@index([actorId])
+  @@index([action])
+  @@index([createdAt])
+}
