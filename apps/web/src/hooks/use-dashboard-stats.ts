@@ -33,6 +33,7 @@ interface ServerStats {
 
 export interface DashboardStats {
   onlineUsers: number;
+  vpnConnections: number;
   bandwidthHistory: BandwidthPoint[];
   nodes: NodeStats[];
   server: ServerStats;

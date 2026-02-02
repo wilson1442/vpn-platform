@@ -197,10 +197,15 @@ export class StatsService implements OnModuleInit, OnModuleDestroy {
   }
 
   async getDashboard() {
-    const onlineResult = await this.prisma.vpnSession.groupBy({
-      by: ['userId'],
-      where: { disconnectedAt: null },
-    });
+    const [onlineResult, vpnConnections] = await Promise.all([
+      this.prisma.vpnSession.groupBy({
+        by: ['userId'],
+        where: { disconnectedAt: null },
+      }),
+      this.prisma.vpnSession.count({
+        where: { disconnectedAt: null },
+      }),
+    ]);
     const onlineUsers = onlineResult.length;
 
     const nodes = Array.from(this.nodeMetrics.values()).map((m) => ({
@@ -220,6 +225,7 @@ export class StatsService implements OnModuleInit, OnModuleDestroy {
 
     return {
       onlineUsers,
+      vpnConnections,
       bandwidthHistory: this.bandwidthHistory,
       nodes,
       server: this.serverMetrics,

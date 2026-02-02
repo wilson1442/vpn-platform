@@ -27,6 +27,7 @@ export default function AdminDashboard() {
     { label: 'Resellers', value: counts.resellers },
     { label: 'VPN Nodes', value: counts.nodes },
     { label: 'Online Users', value: stats?.onlineUsers ?? 0, highlight: true },
+    { label: 'VPN Connections', value: stats?.vpnConnections ?? 0, highlight: true },
   ];
 
   return (
@@ -34,7 +35,7 @@ export default function AdminDashboard() {
       <h1 className="mb-6 text-3xl font-bold">Admin Dashboard</h1>
 
       {/* Row 1: Stat cards */}
-      <div className="mb-6 grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+      <div className="mb-6 grid gap-4 md:grid-cols-2 lg:grid-cols-5">
         {statCards.map((stat) => (
           <Card key={stat.label}>
             <CardHeader className="pb-2">
