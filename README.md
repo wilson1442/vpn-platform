@@ -54,9 +54,12 @@ vpn-platform/
 - **Hard Concurrency Enforcement** — Oldest session kicked when user exceeds connection limit
 - **PKI Management** — Internal CA, client certificate issuance, CRL generation and distribution
 - **Hybrid Billing** — Stripe subscriptions for end users + admin invoicing with credit ledger for resellers
+- **Credit Packages** — Admin-defined credit packages that resellers can purchase (name, credits, price)
+- **Payment Gateways** — Configurable payment providers: Stripe, PayPal, Authorize.net, Venmo, Cash App, Zelle
 - **VPN Node Provisioning** — Register nodes, SSH-based OpenVPN installation, health monitoring via heartbeat
 - **Config Delivery** — `.ovpn` file generation with embedded certs, download or email delivery
 - **Session Tracking** — Real-time connection monitoring with traffic stats (bytes sent/received)
+- **Real-time Dashboard** — Live bandwidth charts, CPU/RAM/network gauges per node, aggregate stats
 - **Audit Logging** — Immutable audit trail of all sensitive actions
 - **Role-based Dashboards** — Separate admin, reseller, and end-user interfaces
 
@@ -209,7 +212,7 @@ server {
     ssl_certificate_key /path/to/key.pem;
 
     # API routes
-    location ~ ^/(auth|users|resellers|vpn-nodes|pki|sessions|billing|plans|entitlements|credits|invoices|configs|audit-logs|settings) {
+    location ~ ^/(auth|users|resellers|vpn-nodes|pki|sessions|billing|packages|entitlements|credits|credit-packages|payment-gateways|invoices|configs|audit-logs|settings|stats) {
         proxy_pass http://127.0.0.1:3000;
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
@@ -286,13 +289,33 @@ server {
 
 | Method | Endpoint          | Auth       | Description              |
 |--------|-------------------|------------|--------------------------|
-| GET    | `/plans`          | JWT+RBAC   | List plans               |
-| POST   | `/plans`          | JWT+RBAC   | Create plan              |
-| POST   | `/entitlements`   | JWT+RBAC   | Assign plan to user      |
-| GET    | `/credits`        | JWT+RBAC   | Reseller credit balance  |
-| POST   | `/credits/add`    | JWT+Admin  | Add credits              |
+| GET    | `/packages`       | JWT+RBAC   | List packages            |
+| POST   | `/packages`       | JWT+RBAC   | Create package           |
+| POST   | `/entitlements`   | JWT+RBAC   | Assign package to user   |
+| POST   | `/credits/add`    | JWT+Admin  | Add credits to reseller  |
+| POST   | `/credits/deduct` | JWT+Admin  | Deduct credits           |
+| GET    | `/credits/logs`   | JWT+RBAC   | Credit transaction logs  |
 | POST   | `/invoices`       | JWT+Admin  | Create invoice           |
 | PATCH  | `/invoices/:id`   | JWT+Admin  | Update invoice status    |
+
+### Credit Packages
+
+| Method | Endpoint                | Auth       | Description                |
+|--------|-------------------------|------------|----------------------------|
+| GET    | `/credit-packages`      | JWT+RBAC   | List credit packages       |
+| POST   | `/credit-packages`      | JWT+Admin  | Create credit package      |
+| PATCH  | `/credit-packages/:id`  | JWT+Admin  | Update credit package      |
+| DELETE | `/credit-packages/:id`  | JWT+Admin  | Delete credit package      |
+
+### Payment Gateways
+
+| Method | Endpoint                          | Auth       | Description                  |
+|--------|-----------------------------------|------------|------------------------------|
+| GET    | `/payment-gateways`               | JWT+Admin  | List all gateways            |
+| POST   | `/payment-gateways`               | JWT+Admin  | Create gateway               |
+| PATCH  | `/payment-gateways/:id`           | JWT+Admin  | Update gateway config        |
+| DELETE | `/payment-gateways/:id`           | JWT+Admin  | Delete gateway               |
+| POST   | `/payment-gateways/seed-defaults` | JWT+Admin  | Seed default gateway entries |
 
 ### Config Delivery
 
@@ -311,7 +334,7 @@ server {
 
 ## Data Model
 
-The platform uses 13 core entities managed through Prisma:
+The platform uses 15 core entities managed through Prisma:
 
 | Entity               | Description                                              |
 |----------------------|----------------------------------------------------------|
@@ -325,6 +348,8 @@ The platform uses 13 core entities managed through Prisma:
 | Package              | Billing plans with connection and device limits          |
 | Entitlement          | User-to-plan assignments                                 |
 | CreditLedgerEntry    | Append-only reseller credit history                      |
+| CreditPackage        | Purchasable credit bundles for resellers                 |
+| PaymentGateway       | Payment provider configurations (Stripe, PayPal, etc.)  |
 | Invoice              | Billing invoices                                         |
 | AppSettings          | Global application configuration                         |
 | AuditLog             | Immutable action audit trail                             |

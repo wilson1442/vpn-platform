@@ -162,6 +162,7 @@ export default function UsersPage() {
         columns={[
           { key: 'username', header: 'Username' },
           { key: 'email', header: 'Email', render: (u) => u.email || '-' },
+          { key: 'owner', header: 'Owner', render: (u) => u.reseller ? u.reseller.companyName : 'Panel' },
           { key: 'role', header: 'Role', render: (u) => <Badge variant={u.role === 'ADMIN' ? 'default' : 'secondary'}>{u.role}</Badge> },
           { key: 'package', header: 'Package', render: (u) => u.entitlement?.package?.name || '-' },
           { key: 'isActive', header: 'Status', render: (u) => {

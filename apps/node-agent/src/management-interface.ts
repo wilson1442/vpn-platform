@@ -36,6 +36,31 @@ export async function killClient(commonName: string): Promise<string> {
   return sendCommand(`kill ${commonName}`);
 }
 
+export async function getClientBandwidth(): Promise<
+  { commonName: string; bytesReceived: number; bytesSent: number }[]
+> {
+  try {
+    const status = await sendCommand('status 2');
+    const lines = status.split('\n');
+    const clients: { commonName: string; bytesReceived: number; bytesSent: number }[] = [];
+    for (const line of lines) {
+      if (!line.startsWith('CLIENT_LIST\t')) continue;
+      const fields = line.split('\t');
+      // CLIENT_LIST fields: header, CN, Real Address, Virtual Address, Virtual IPv6,
+      //   Bytes Received, Bytes Sent, Connected Since, Connected Since (epoch), Username, ...
+      if (fields.length < 8) continue;
+      clients.push({
+        commonName: fields[1],
+        bytesReceived: parseInt(fields[5], 10) || 0,
+        bytesSent: parseInt(fields[6], 10) || 0,
+      });
+    }
+    return clients;
+  } catch {
+    return [];
+  }
+}
+
 export async function getActiveConnectionCount(): Promise<number> {
   try {
     const status = await getStatus();

@@ -216,6 +216,27 @@ model Invoice {
   @@index([resellerId])
 }
 
+model CreditPackage {
+  id          String  @id @default(uuid())
+  name        String
+  credits     Int
+  price       Int     // price in cents
+  description String  @default("")
+  isActive    Boolean @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model PaymentGateway {
+  id          String  @id @default(uuid())
+  provider    String  @unique // stripe, paypal, authorize_net, venmo, cashapp, zelle
+  displayName String
+  isEnabled   Boolean @default(false)
+  config      Json    @default("{}")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
 model AppSettings {
   id         String   @id @default("singleton")
   siteName   String   @default("VPN Platform")

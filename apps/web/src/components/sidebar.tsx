@@ -21,7 +21,9 @@ const adminNav: NavItem[] = [
   { label: 'Users', href: '/admin/users' },
   { label: 'VPN Nodes', href: '/admin/vpn-nodes' },
   { label: 'Packages', href: '/admin/packages' },
+  { label: 'Credit Packages', href: '/admin/credit-packages' },
   { label: 'Billing', href: '/admin/billing' },
+  { label: 'Payment Gateways', href: '/admin/payment-gateways' },
   { label: 'Audit Log', href: '/admin/audit-log' },
   {
     label: 'Logs',

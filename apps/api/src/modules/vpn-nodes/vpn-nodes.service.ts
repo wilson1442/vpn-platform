@@ -1,9 +1,13 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../common/prisma.service';
+import { StatsService } from '../stats/stats.service';
 
 @Injectable()
 export class VpnNodesService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private stats: StatsService,
+  ) {}
 
   findAll() {
     return this.prisma.vpnNode.findMany({ orderBy: { createdAt: 'desc' } });
@@ -19,7 +23,7 @@ export class VpnNodesService {
     return this.prisma.vpnNode.create({ data });
   }
 
-  async update(id: string, data: { name?: string; hostname?: string; port?: number; agentPort?: number; mgmtPort?: number; isActive?: boolean }) {
+  async update(id: string, data: { name?: string; hostname?: string; port?: number; agentPort?: number; mgmtPort?: number; sshPort?: number; isActive?: boolean }) {
     return this.prisma.vpnNode.update({ where: { id }, data });
   }
 
@@ -30,11 +34,35 @@ export class VpnNodesService {
     return { deleted: true };
   }
 
-  async heartbeat(nodeId: string, crlVersion: number, activeConnections: number) {
-    return this.prisma.vpnNode.update({
+  async heartbeat(
+    nodeId: string,
+    data: {
+      crlVersion: number;
+      activeConnections: number;
+      cpuPercent?: number;
+      memPercent?: number;
+      netRxBps?: number;
+      netTxBps?: number;
+      totalBytesRx?: number;
+      totalBytesTx?: number;
+    },
+  ) {
+    const node = await this.prisma.vpnNode.update({
       where: { id: nodeId },
-      data: { lastHeartbeatAt: new Date(), crlVersion },
+      data: { lastHeartbeatAt: new Date(), crlVersion: data.crlVersion },
     });
+
+    this.stats.updateNodeMetrics(nodeId, node.name, node.hostname, node.isActive, {
+      activeConnections: data.activeConnections,
+      cpuPercent: data.cpuPercent,
+      memPercent: data.memPercent,
+      netRxBps: data.netRxBps,
+      netTxBps: data.netTxBps,
+      totalBytesRx: data.totalBytesRx,
+      totalBytesTx: data.totalBytesTx,
+    });
+
+    return node;
   }
 
   async getStaleNodes(thresholdMs: number = 90_000) {

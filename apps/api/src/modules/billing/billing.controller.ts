@@ -16,6 +16,46 @@ export class BillingController {
     private prisma: PrismaService,
   ) {}
 
+  // Credit Packages
+  @Get('credit-packages')
+  @Roles(Role.ADMIN, Role.RESELLER)
+  findCreditPackages() {
+    return this.prisma.creditPackage.findMany({
+      where: { isActive: true },
+      orderBy: { createdAt: 'desc' },
+    });
+  }
+
+  @Post('credit-packages')
+  @Roles(Role.ADMIN)
+  createCreditPackage(@Body() body: { name: string; credits: number; price: number; description?: string }) {
+    return this.prisma.creditPackage.create({
+      data: {
+        name: body.name,
+        credits: body.credits,
+        price: body.price,
+        description: body.description || '',
+      },
+    });
+  }
+
+  @Patch('credit-packages/:id')
+  @Roles(Role.ADMIN)
+  async updateCreditPackage(@Param('id') id: string, @Body() body: { name?: string; credits?: number; price?: number; description?: string; isActive?: boolean }) {
+    const pkg = await this.prisma.creditPackage.findUnique({ where: { id } });
+    if (!pkg) throw new NotFoundException('Credit package not found');
+    return this.prisma.creditPackage.update({ where: { id }, data: body });
+  }
+
+  @Delete('credit-packages/:id')
+  @Roles(Role.ADMIN)
+  async deleteCreditPackage(@Param('id') id: string) {
+    const pkg = await this.prisma.creditPackage.findUnique({ where: { id } });
+    if (!pkg) throw new NotFoundException('Credit package not found');
+    await this.prisma.creditPackage.delete({ where: { id } });
+    return { deleted: true };
+  }
+
   // Packages
   @Get('packages')
   @Roles(Role.ADMIN, Role.RESELLER)
@@ -99,36 +139,16 @@ export class BillingController {
   }
 
   // Credits
-  @Get('credits/:resellerId')
-  @Roles(Role.ADMIN, Role.RESELLER)
-  async getBalance(@Param('resellerId') resellerId: string, @CurrentUser() actor: any) {
-    await this.assertResellerScope(actor, resellerId);
-    return this.credits.getBalance(resellerId).then((balance) => ({ balance }));
-  }
-
-  @Get('credits/:resellerId/history')
-  @Roles(Role.ADMIN, Role.RESELLER)
-  async getHistory(@Param('resellerId') resellerId: string, @CurrentUser() actor: any) {
-    await this.assertResellerScope(actor, resellerId);
-    return this.credits.getHistory(resellerId);
-  }
-
   @Post('credits/add')
-  @Roles(Role.ADMIN, Role.RESELLER)
-  async addCredits(@Body() body: { resellerId: string; amount: number; description?: string }, @CurrentUser() actor: any) {
-    if (actor.role === 'RESELLER') {
-      await this.assertResellerScope(actor, body.resellerId);
-    }
-    return this.credits.addCredits(body.resellerId, body.amount, body.description || 'Credit added');
+  @Roles(Role.ADMIN)
+  async addCredits(@Body() body: { resellerId: string; amount: number; description?: string }) {
+    return this.credits.addCredits(body.resellerId, body.amount, body.description || 'Credit added by admin');
   }
 
   @Post('credits/deduct')
-  @Roles(Role.ADMIN, Role.RESELLER)
-  async deductCreditsManual(@Body() body: { resellerId: string; amount: number; description?: string }, @CurrentUser() actor: any) {
-    if (actor.role === 'RESELLER') {
-      await this.assertResellerScope(actor, body.resellerId);
-    }
-    return this.credits.deductCredits(body.resellerId, body.amount, body.description || 'Credit deducted');
+  @Roles(Role.ADMIN)
+  async deductCredits(@Body() body: { resellerId: string; amount: number; description?: string }) {
+    return this.credits.deductCredits(body.resellerId, body.amount, body.description || 'Credit deducted by admin');
   }
 
   @Get('credits/logs')
@@ -181,6 +201,64 @@ export class BillingController {
   @Roles(Role.ADMIN)
   deleteInvoice(@Param('id') id: string) {
     return this.invoices.delete(id);
+  }
+
+  // Payment Gateways
+  @Get('payment-gateways')
+  @Roles(Role.ADMIN)
+  findPaymentGateways() {
+    return this.prisma.paymentGateway.findMany({ orderBy: { provider: 'asc' } });
+  }
+
+  @Post('payment-gateways')
+  @Roles(Role.ADMIN)
+  createPaymentGateway(@Body() body: { provider: string; displayName: string; isEnabled?: boolean; config?: any }) {
+    return this.prisma.paymentGateway.create({
+      data: {
+        provider: body.provider,
+        displayName: body.displayName,
+        isEnabled: body.isEnabled ?? false,
+        config: body.config ?? {},
+      },
+    });
+  }
+
+  @Patch('payment-gateways/:id')
+  @Roles(Role.ADMIN)
+  async updatePaymentGateway(@Param('id') id: string, @Body() body: { displayName?: string; isEnabled?: boolean; config?: any }) {
+    const gw = await this.prisma.paymentGateway.findUnique({ where: { id } });
+    if (!gw) throw new NotFoundException('Payment gateway not found');
+    return this.prisma.paymentGateway.update({ where: { id }, data: body });
+  }
+
+  @Delete('payment-gateways/:id')
+  @Roles(Role.ADMIN)
+  async deletePaymentGateway(@Param('id') id: string) {
+    const gw = await this.prisma.paymentGateway.findUnique({ where: { id } });
+    if (!gw) throw new NotFoundException('Payment gateway not found');
+    await this.prisma.paymentGateway.delete({ where: { id } });
+    return { deleted: true };
+  }
+
+  @Post('payment-gateways/seed-defaults')
+  @Roles(Role.ADMIN)
+  async seedDefaultGateways() {
+    const defaults = [
+      { provider: 'stripe', displayName: 'Stripe' },
+      { provider: 'paypal', displayName: 'PayPal' },
+      { provider: 'authorize_net', displayName: 'Authorize.net' },
+      { provider: 'venmo', displayName: 'Venmo' },
+      { provider: 'cashapp', displayName: 'Cash App' },
+      { provider: 'zelle', displayName: 'Zelle' },
+    ];
+    for (const gw of defaults) {
+      await this.prisma.paymentGateway.upsert({
+        where: { provider: gw.provider },
+        update: {},
+        create: { ...gw, isEnabled: false, config: {} },
+      });
+    }
+    return this.prisma.paymentGateway.findMany({ orderBy: { provider: 'asc' } });
   }
 
   private async deductCreditsIfReseller(actor: any, packageId: string) {

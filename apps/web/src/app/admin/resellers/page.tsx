@@ -6,12 +6,20 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { DataTable } from '@/components/data-table';
 import { ManageCreditsDialog } from '@/components/manage-credits-dialog';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from '@/components/ui/dialog';
 
 export default function ResellersPage() {
   const [resellers, setResellers] = useState<any[]>([]);
   const [showCreate, setShowCreate] = useState(false);
   const [form, setForm] = useState({ userId: '', companyName: '', parentId: '', maxDepth: '3' });
-  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editTarget, setEditTarget] = useState<any>(null);
   const [editForm, setEditForm] = useState({ companyName: '', maxDepth: '3' });
   const [creditsTarget, setCreditsTarget] = useState<any>(null);
 
@@ -41,17 +49,17 @@ export default function ResellersPage() {
   };
 
   const startEdit = (reseller: any) => {
-    setEditingId(reseller.id);
+    setEditTarget(reseller);
     setEditForm({ companyName: reseller.companyName, maxDepth: String(reseller.maxDepth) });
   };
 
   const handleEdit = async (e: React.FormEvent) => {
     e.preventDefault();
-    await api(`/resellers/${editingId}`, {
+    await api(`/resellers/${editTarget.id}`, {
       method: 'PATCH',
       body: JSON.stringify({ companyName: editForm.companyName, maxDepth: parseInt(editForm.maxDepth) }),
     });
-    setEditingId(null);
+    setEditTarget(null);
     load();
   };
 
@@ -67,28 +75,39 @@ export default function ResellersPage() {
       {showCreate && (
         <form onSubmit={handleCreate} className="mb-6 space-y-3 rounded-lg border p-4">
           <Input placeholder="User ID" value={form.userId} onChange={(e) => setForm({ ...form, userId: e.target.value })} required />
-          <Input placeholder="Company Name" value={form.companyName} onChange={(e) => setForm({ ...form, companyName: e.target.value })} required />
+          <Input placeholder="Name" value={form.companyName} onChange={(e) => setForm({ ...form, companyName: e.target.value })} required />
           <Input placeholder="Parent Reseller ID (optional)" value={form.parentId} onChange={(e) => setForm({ ...form, parentId: e.target.value })} />
           <Input placeholder="Max Depth" type="number" value={form.maxDepth} onChange={(e) => setForm({ ...form, maxDepth: e.target.value })} />
           <Button type="submit">Create</Button>
         </form>
       )}
 
-      {editingId && (
-        <form onSubmit={handleEdit} className="mb-6 space-y-3 rounded-lg border border-blue-200 bg-blue-50/50 p-4 dark:border-blue-900 dark:bg-blue-950/20">
-          <h3 className="font-semibold">Edit Reseller</h3>
-          <Input placeholder="Company Name" value={editForm.companyName} onChange={(e) => setEditForm({ ...editForm, companyName: e.target.value })} required />
-          <Input placeholder="Max Depth" type="number" value={editForm.maxDepth} onChange={(e) => setEditForm({ ...editForm, maxDepth: e.target.value })} />
-          <div className="flex gap-2">
-            <Button type="submit">Save</Button>
-            <Button type="button" variant="outline" onClick={() => setEditingId(null)}>Cancel</Button>
-          </div>
-        </form>
-      )}
+      <Dialog open={!!editTarget} onOpenChange={(open) => { if (!open) setEditTarget(null); }}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Edit Reseller</DialogTitle>
+            <DialogDescription>Update reseller details for {editTarget?.companyName}</DialogDescription>
+          </DialogHeader>
+          <form onSubmit={handleEdit} className="space-y-4">
+            <div>
+              <label className="mb-1 block text-sm font-medium">Name</label>
+              <Input value={editForm.companyName} onChange={(e) => setEditForm({ ...editForm, companyName: e.target.value })} required />
+            </div>
+            <div>
+              <label className="mb-1 block text-sm font-medium">Max Depth</label>
+              <Input type="number" value={editForm.maxDepth} onChange={(e) => setEditForm({ ...editForm, maxDepth: e.target.value })} />
+            </div>
+            <DialogFooter>
+              <Button type="button" variant="outline" onClick={() => setEditTarget(null)}>Cancel</Button>
+              <Button type="submit">Save</Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
 
       <DataTable
         columns={[
-          { key: 'companyName', header: 'Company' },
+          { key: 'companyName', header: 'Name' },
           { key: 'user', header: 'Email', render: (r) => r.user?.email },
           { key: 'creditBalance', header: 'Credits' },
           { key: 'users', header: 'Users', render: (r) => r._count?.users ?? 0 },

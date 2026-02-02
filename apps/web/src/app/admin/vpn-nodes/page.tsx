@@ -6,6 +6,14 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { DataTable } from '@/components/data-table';
 import { Badge } from '@/components/ui/badge';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from '@/components/ui/dialog';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
 
@@ -33,8 +41,8 @@ export default function VpnNodesPage() {
   const [nodes, setNodes] = useState<any[]>([]);
   const [showCreate, setShowCreate] = useState(false);
   const [form, setForm] = useState({ name: '', hostname: '', port: '1194', agentPort: '3001', mgmtPort: '7505', sshPort: '22' });
-  const [editingId, setEditingId] = useState<string | null>(null);
-  const [editForm, setEditForm] = useState({ name: '', hostname: '', port: '1194', agentPort: '3001', mgmtPort: '7505' });
+  const [editTarget, setEditTarget] = useState<any>(null);
+  const [editForm, setEditForm] = useState({ name: '', hostname: '', port: '1194', agentPort: '3001', mgmtPort: '7505', sshPort: '22' });
 
   const [sshDialog, setSshDialog] = useState<SshDialogState | null>(null);
   const [sshForm, setSshForm] = useState({ username: 'root', password: '', privateKey: '', authMethod: 'password' as 'password' | 'key' });
@@ -86,19 +94,20 @@ export default function VpnNodesPage() {
   };
 
   const startEdit = (node: any) => {
-    setEditingId(node.id);
+    setEditTarget(node);
     setEditForm({
       name: node.name,
       hostname: node.hostname,
       port: String(node.port),
       agentPort: String(node.agentPort),
       mgmtPort: String(node.mgmtPort),
+      sshPort: String(node.sshPort || 22),
     });
   };
 
   const handleEdit = async (e: React.FormEvent) => {
     e.preventDefault();
-    await api(`/vpn-nodes/${editingId}`, {
+    await api(`/vpn-nodes/${editTarget.id}`, {
       method: 'PATCH',
       body: JSON.stringify({
         name: editForm.name,
@@ -106,9 +115,10 @@ export default function VpnNodesPage() {
         port: parseInt(editForm.port),
         agentPort: parseInt(editForm.agentPort),
         mgmtPort: parseInt(editForm.mgmtPort),
+        sshPort: parseInt(editForm.sshPort),
       }),
     });
-    setEditingId(null);
+    setEditTarget(null);
     load();
   };
 
@@ -246,22 +256,48 @@ export default function VpnNodesPage() {
         </form>
       )}
 
-      {editingId && (
-        <form onSubmit={handleEdit} className="mb-6 space-y-3 rounded-lg border border-blue-200 bg-blue-50/50 p-4 dark:border-blue-900 dark:bg-blue-950/20">
-          <h3 className="font-semibold">Edit Node</h3>
-          <Input placeholder="Node Name" value={editForm.name} onChange={(e) => setEditForm({ ...editForm, name: e.target.value })} required />
-          <Input placeholder="Hostname" value={editForm.hostname} onChange={(e) => setEditForm({ ...editForm, hostname: e.target.value })} required />
-          <div className="grid grid-cols-3 gap-2">
-            <Input placeholder="VPN Port" type="number" value={editForm.port} onChange={(e) => setEditForm({ ...editForm, port: e.target.value })} />
-            <Input placeholder="Agent Port" type="number" value={editForm.agentPort} onChange={(e) => setEditForm({ ...editForm, agentPort: e.target.value })} />
-            <Input placeholder="Mgmt Port" type="number" value={editForm.mgmtPort} onChange={(e) => setEditForm({ ...editForm, mgmtPort: e.target.value })} />
-          </div>
-          <div className="flex gap-2">
-            <Button type="submit">Save</Button>
-            <Button type="button" variant="outline" onClick={() => setEditingId(null)}>Cancel</Button>
-          </div>
-        </form>
-      )}
+      <Dialog open={!!editTarget} onOpenChange={(open) => { if (!open) setEditTarget(null); }}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Edit VPN Node</DialogTitle>
+            <DialogDescription>Update configuration for {editTarget?.name}</DialogDescription>
+          </DialogHeader>
+          <form onSubmit={handleEdit} className="space-y-4">
+            <div>
+              <label className="mb-1 block text-sm font-medium">Node Name</label>
+              <Input value={editForm.name} onChange={(e) => setEditForm({ ...editForm, name: e.target.value })} required />
+            </div>
+            <div>
+              <label className="mb-1 block text-sm font-medium">Hostname</label>
+              <Input value={editForm.hostname} onChange={(e) => setEditForm({ ...editForm, hostname: e.target.value })} required />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="mb-1 block text-sm font-medium">VPN Port</label>
+                <Input type="number" value={editForm.port} onChange={(e) => setEditForm({ ...editForm, port: e.target.value })} />
+              </div>
+              <div>
+                <label className="mb-1 block text-sm font-medium">Agent Port</label>
+                <Input type="number" value={editForm.agentPort} onChange={(e) => setEditForm({ ...editForm, agentPort: e.target.value })} />
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="mb-1 block text-sm font-medium">Management Port</label>
+                <Input type="number" value={editForm.mgmtPort} onChange={(e) => setEditForm({ ...editForm, mgmtPort: e.target.value })} />
+              </div>
+              <div>
+                <label className="mb-1 block text-sm font-medium">SSH Port</label>
+                <Input type="number" value={editForm.sshPort} onChange={(e) => setEditForm({ ...editForm, sshPort: e.target.value })} />
+              </div>
+            </div>
+            <DialogFooter>
+              <Button type="button" variant="outline" onClick={() => setEditTarget(null)}>Cancel</Button>
+              <Button type="submit">Save</Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
 
       {/* SSH Credentials Dialog */}
       {sshDialog && (

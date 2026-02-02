@@ -44,8 +44,21 @@ export class VpnNodesController {
 
   @Post('heartbeat')
   @AgentAuth()
-  heartbeat(@Req() req: any, @Body() body: { crlVersion: number; activeConnections: number }) {
-    return this.vpnNodes.heartbeat(req.vpnNode.id, body.crlVersion, body.activeConnections);
+  heartbeat(
+    @Req() req: any,
+    @Body()
+    body: {
+      crlVersion: number;
+      activeConnections: number;
+      cpuPercent?: number;
+      memPercent?: number;
+      netRxBps?: number;
+      netTxBps?: number;
+      totalBytesRx?: number;
+      totalBytesTx?: number;
+    },
+  ) {
+    return this.vpnNodes.heartbeat(req.vpnNode.id, body);
   }
 
   @Post(':id/install')

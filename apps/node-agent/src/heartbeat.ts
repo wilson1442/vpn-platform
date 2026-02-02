@@ -1,5 +1,6 @@
 import { HEARTBEAT_INTERVAL_MS } from '@vpn/shared';
-import { getActiveConnectionCount } from './management-interface';
+import { getActiveConnectionCount, getClientBandwidth } from './management-interface';
+import { collectSystemMetrics } from './system-metrics';
 import * as fs from 'fs';
 
 const API_BASE_URL = process.env.AGENT_API_BASE_URL || 'http://localhost:3000';
@@ -20,13 +21,31 @@ export function startHeartbeat() {
   const beat = async () => {
     try {
       const activeConnections = await getActiveConnectionCount();
+      const { cpuPercent, memPercent, netRxBps, netTxBps } = collectSystemMetrics();
+      const clients = await getClientBandwidth();
+      let totalBytesRx = 0;
+      let totalBytesTx = 0;
+      for (const c of clients) {
+        totalBytesRx += c.bytesReceived;
+        totalBytesTx += c.bytesSent;
+      }
+
       const resp = await fetch(`${API_BASE_URL}/vpn-nodes/heartbeat`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${AGENT_TOKEN}`,
         },
-        body: JSON.stringify({ crlVersion: currentCrlVersion, activeConnections }),
+        body: JSON.stringify({
+          crlVersion: currentCrlVersion,
+          activeConnections,
+          cpuPercent,
+          memPercent,
+          netRxBps,
+          netTxBps,
+          totalBytesRx,
+          totalBytesTx,
+        }),
       });
 
       if (resp.ok) {

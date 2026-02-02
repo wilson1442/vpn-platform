@@ -2,6 +2,7 @@ import { NotFoundException } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 import { VpnNodesService } from './vpn-nodes.service';
 import { PrismaService } from '../../common/prisma.service';
+import { StatsService } from '../stats/stats.service';
 
 describe('VpnNodesService', () => {
   let service: VpnNodesService;
@@ -34,6 +35,7 @@ describe('VpnNodesService', () => {
       providers: [
         VpnNodesService,
         { provide: PrismaService, useValue: prisma },
+        { provide: StatsService, useValue: { updateNodeMetrics: jest.fn() } },
       ],
     }).compile();
 
@@ -92,7 +94,7 @@ describe('VpnNodesService', () => {
   describe('heartbeat', () => {
     it('should update lastHeartbeatAt and crlVersion', async () => {
       prisma.vpnNode.update.mockResolvedValue({ ...mockNode, crlVersion: 5 });
-      const result = await service.heartbeat('node-1', 5, 10);
+      const result = await service.heartbeat('node-1', { crlVersion: 5, activeConnections: 10 });
       expect(prisma.vpnNode.update).toHaveBeenCalledWith({
         where: { id: 'node-1' },
         data: expect.objectContaining({ crlVersion: 5, lastHeartbeatAt: expect.any(Date) }),

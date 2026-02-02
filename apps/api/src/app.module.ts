@@ -12,6 +12,7 @@ import { BillingModule } from './modules/billing/billing.module';
 import { AuditModule } from './modules/audit/audit.module';
 import { ConfigDeliveryModule } from './modules/config-delivery/config-delivery.module';
 import { SettingsModule } from './modules/settings/settings.module';
+import { StatsModule } from './modules/stats/stats.module';
 
 @Module({
   imports: [
@@ -33,6 +34,7 @@ import { SettingsModule } from './modules/settings/settings.module';
     AuditModule,
     ConfigDeliveryModule,
     SettingsModule,
+    StatsModule,
   ],
 })
 export class AppModule {}
