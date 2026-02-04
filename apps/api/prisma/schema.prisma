@@ -47,6 +47,8 @@ model User {
   certificates   Certificate[]
   vpnSessions    VpnSession[]
   auditLogs      AuditLog[]   @relation("AuditActor")
+  profileAccessToken ProfileAccessToken?
+  shortUrls      ShortUrl[]
 
   @@index([resellerId])
 }
@@ -101,6 +103,7 @@ model VpnNode {
   updatedAt       DateTime  @updatedAt
 
   vpnSessions VpnSession[]
+  shortUrls   ShortUrl[]
 }
 
 model CertificateAuthority {
@@ -261,4 +264,29 @@ model AuditLog {
   @@index([actorId])
   @@index([action])
   @@index([createdAt])
+}
+
+model ProfileAccessToken {
+  id        String   @id @default(uuid())
+  userId    String   @unique
+  token     String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model ShortUrl {
+  id        String   @id @default(uuid())
+  code      String   @unique
+  shortUrl  String?  // Full short URL from Bitly (e.g., https://bit.ly/abc123)
+  userId    String
+  vpnNodeId String
+  createdAt DateTime @default(now())
+
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  vpnNode VpnNode @relation(fields: [vpnNodeId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, vpnNodeId])
+  @@index([userId])
 }

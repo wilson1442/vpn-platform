@@ -1,7 +1,7 @@
-import { Controller, Get, Post, Delete, Param, Body, Res } from '@nestjs/common';
-import { Response } from 'express';
+import { Controller, Get, Post, Delete, Param, Body, Res, Query, Req } from '@nestjs/common';
+import { Request, Response } from 'express';
 import { ConfigDeliveryService } from './config-delivery.service';
-import { CurrentUser } from '../../common/decorators';
+import { CurrentUser, Public } from '../../common/decorators';
 
 @Controller('configs')
 export class ConfigDeliveryController {
@@ -69,5 +69,65 @@ export class ConfigDeliveryController {
   ) {
     await this.configDelivery.assertCertOwnership(certId, user.sub);
     return this.configDelivery.deleteCertificate(certId);
+  }
+
+  @Get('access-token')
+  getAccessToken(@CurrentUser() user: any) {
+    return this.configDelivery.getOrCreateAccessToken(user.sub);
+  }
+
+  @Post('access-token/regenerate')
+  regenerateAccessToken(@CurrentUser() user: any) {
+    return this.configDelivery.regenerateAccessToken(user.sub);
+  }
+
+  @Public()
+  @Get('profile/:token')
+  async getProfileByToken(
+    @Param('token') token: string,
+    @Query('node') nodeId: string | undefined,
+    @Res() res: Response,
+  ) {
+    const { config, nodeName } = await this.configDelivery.getProfileByToken(token, nodeId);
+    res.setHeader('Content-Type', 'application/x-openvpn-profile');
+    res.setHeader('Content-Disposition', `attachment; filename="${nodeName}.ovpn"`);
+    res.send(config);
+  }
+
+  @Get('short-urls')
+  getShortUrls(@CurrentUser() user: any) {
+    return this.configDelivery.getShortUrls(user.sub);
+  }
+
+  @Post('short-url/:vpnNodeId')
+  getOrCreateShortUrl(
+    @CurrentUser() user: any,
+    @Param('vpnNodeId') vpnNodeId: string,
+    @Req() req: Request,
+  ) {
+    const baseUrl = `${req.protocol}://${req.get('host')}`;
+    return this.configDelivery.getOrCreateShortUrl(user.sub, vpnNodeId, baseUrl);
+  }
+
+  @Post('short-url/:vpnNodeId/regenerate')
+  regenerateShortUrl(
+    @CurrentUser() user: any,
+    @Param('vpnNodeId') vpnNodeId: string,
+    @Req() req: Request,
+  ) {
+    const baseUrl = `${req.protocol}://${req.get('host')}`;
+    return this.configDelivery.regenerateShortUrl(user.sub, vpnNodeId, baseUrl);
+  }
+
+  @Public()
+  @Get('p/:code')
+  async getProfileByShortCode(
+    @Param('code') code: string,
+    @Res() res: Response,
+  ) {
+    const { config, nodeName } = await this.configDelivery.getProfileByShortCode(code);
+    res.setHeader('Content-Type', 'application/x-openvpn-profile');
+    res.setHeader('Content-Disposition', `attachment; filename="${nodeName}.ovpn"`);
+    res.send(config);
   }
 }
