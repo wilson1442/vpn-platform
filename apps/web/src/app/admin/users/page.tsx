@@ -175,6 +175,25 @@ export default function UsersPage() {
           }},
           { key: 'expiresAt', header: 'Expires', render: (u) => u.expiresAt ? new Date(u.expiresAt).toLocaleDateString() : 'Never' },
           { key: 'createdAt', header: 'Created', hideOnMobile: true, render: (u) => new Date(u.createdAt).toLocaleDateString() },
+          { key: 'shortUrls', header: 'TinyURLs', hideOnMobile: true, render: (u) => {
+            if (!u.shortUrls || u.shortUrls.length === 0) return '-';
+            return (
+              <div className="space-y-1">
+                {u.shortUrls.map((s: any) => (
+                  <div key={s.code} className="text-xs">
+                    <span className="text-muted-foreground">{s.vpnNode?.name}: </span>
+                    {s.shortUrl ? (
+                      <a href={s.shortUrl} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
+                        {s.shortUrl.replace('https://', '')}
+                      </a>
+                    ) : (
+                      <span className="text-muted-foreground">{s.code}</span>
+                    )}
+                  </div>
+                ))}
+              </div>
+            );
+          }},
           { key: 'actions', header: 'Actions', render: (u) => (
             <div className="flex gap-2">
               {u.role !== 'ADMIN' && (

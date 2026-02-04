@@ -14,7 +14,20 @@ export class UsersService {
     const where = await this.buildScopeWhere(actor);
     return this.prisma.user.findMany({
       where,
-      select: { id: true, username: true, email: true, role: true, resellerId: true, isActive: true, expiresAt: true, createdAt: true, entitlementId: true, entitlement: { select: { package: { select: { name: true } } } }, reseller: { select: { companyName: true, user: { select: { username: true } } } } },
+      select: {
+        id: true,
+        username: true,
+        email: true,
+        role: true,
+        resellerId: true,
+        isActive: true,
+        expiresAt: true,
+        createdAt: true,
+        entitlementId: true,
+        entitlement: { select: { package: { select: { name: true } } } },
+        reseller: { select: { companyName: true, user: { select: { username: true } } } },
+        shortUrls: { select: { code: true, shortUrl: true, vpnNode: { select: { name: true } } } },
+      },
       orderBy: { createdAt: 'desc' },
     });
   }
