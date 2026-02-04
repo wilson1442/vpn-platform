@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { useAuth } from '@/lib/auth-context';
+import { useMobileNav } from '@/lib/mobile-nav-context';
 import { cn } from '@/lib/utils';
 import { Button } from './ui/button';
 
@@ -62,7 +63,7 @@ interface PublicSettings {
   logoPath: string | null;
 }
 
-function NavLink({ item, pathname }: { item: NavItem; pathname: string }) {
+function NavLink({ item, pathname, onNavigate }: { item: NavItem; pathname: string; onNavigate?: () => void }) {
   const [expanded, setExpanded] = useState(false);
   const hasChildren = item.children && item.children.length > 0;
   const isChildActive = hasChildren && item.children!.some((c) => pathname === c.href);
@@ -76,6 +77,7 @@ function NavLink({ item, pathname }: { item: NavItem; pathname: string }) {
     return (
       <Link
         href={item.href}
+        onClick={onNavigate}
         className={cn(
           'block rounded-md px-3 py-2 text-sm font-medium transition-colors hover:bg-accent',
           pathname === item.href ? 'bg-accent text-accent-foreground' : 'text-muted-foreground',
@@ -112,6 +114,7 @@ function NavLink({ item, pathname }: { item: NavItem; pathname: string }) {
             <Link
               key={child.href}
               href={child.href}
+              onClick={onNavigate}
               className={cn(
                 'block rounded-md px-3 py-1.5 text-sm transition-colors hover:bg-accent',
                 pathname === child.href ? 'bg-accent text-accent-foreground font-medium' : 'text-muted-foreground',
@@ -129,6 +132,7 @@ function NavLink({ item, pathname }: { item: NavItem; pathname: string }) {
 export function Sidebar() {
   const { user, logout } = useAuth();
   const pathname = usePathname();
+  const { isOpen, close } = useMobileNav();
   const [branding, setBranding] = useState<PublicSettings>({ siteName: 'VPN Platform', logoPath: null });
 
   useEffect(() => {
@@ -143,28 +147,65 @@ export function Sidebar() {
   const nav = user?.role === 'ADMIN' ? adminNav : user?.role === 'RESELLER' ? resellerNav : userNav;
 
   return (
-    <aside className="flex h-screen w-64 flex-col border-r bg-muted/30">
-      <div className="flex h-14 items-center border-b px-4 gap-2">
-        {branding.logoPath && (
-          <img
-            src={`${API_URL}/settings/logo`}
-            alt="Logo"
-            className="h-8 w-8 rounded object-contain"
-          />
+    <>
+      {/* Backdrop overlay for mobile */}
+      {isOpen && (
+        <div
+          className="fixed inset-0 z-40 bg-black/50 md:hidden"
+          onClick={close}
+          aria-hidden="true"
+        />
+      )}
+
+      {/* Sidebar */}
+      <aside
+        className={cn(
+          'fixed inset-y-0 left-0 z-50 flex w-64 flex-col border-r bg-background transition-transform duration-300 ease-in-out md:static md:translate-x-0',
+          isOpen ? 'translate-x-0' : '-translate-x-full',
         )}
-        <span className="text-lg font-semibold">{branding.siteName}</span>
-      </div>
-      <nav className="flex-1 space-y-1 p-2">
-        {nav.map((item) => (
-          <NavLink key={item.href} item={item} pathname={pathname} />
-        ))}
-      </nav>
-      <div className="border-t p-4">
-        <p className="mb-2 text-xs text-muted-foreground">{user?.email}</p>
-        <Button variant="outline" size="sm" className="w-full" onClick={logout}>
-          Logout
-        </Button>
-      </div>
-    </aside>
+      >
+        <div className="flex h-14 items-center justify-between border-b px-4">
+          <div className="flex items-center gap-2">
+            {branding.logoPath && (
+              <img
+                src={`${API_URL}/settings/logo`}
+                alt="Logo"
+                className="h-8 w-8 rounded object-contain"
+              />
+            )}
+            <span className="text-lg font-semibold">{branding.siteName}</span>
+          </div>
+          {/* Close button for mobile */}
+          <Button
+            variant="ghost"
+            size="sm"
+            className="h-8 w-8 p-0 md:hidden"
+            onClick={close}
+            aria-label="Close navigation menu"
+          >
+            <svg
+              className="h-5 w-5"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              strokeWidth={2}
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </Button>
+        </div>
+        <nav className="flex-1 space-y-1 overflow-y-auto p-2">
+          {nav.map((item) => (
+            <NavLink key={item.href} item={item} pathname={pathname} onNavigate={close} />
+          ))}
+        </nav>
+        <div className="border-t p-4">
+          <p className="mb-2 text-xs text-muted-foreground">{user?.email}</p>
+          <Button variant="outline" size="sm" className="w-full" onClick={logout}>
+            Logout
+          </Button>
+        </div>
+      </aside>
+    </>
   );
 }

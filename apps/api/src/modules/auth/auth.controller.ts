@@ -1,11 +1,17 @@
 import { Controller, Post, Get, Body, HttpCode, HttpStatus } from '@nestjs/common';
+import { Role } from '@prisma/client';
 import { AuthService } from './auth.service';
-import { Public, CurrentUser } from '../../common/decorators';
+import { Public, CurrentUser, Roles } from '../../common/decorators';
 import { PrismaService } from '../../common/prisma.service';
+import { AuditService } from '../audit/audit.service';
 
 @Controller('auth')
 export class AuthController {
-  constructor(private auth: AuthService, private prisma: PrismaService) {}
+  constructor(
+    private auth: AuthService,
+    private prisma: PrismaService,
+    private audit: AuditService,
+  ) {}
 
   @Public()
   @Post('login')
@@ -30,6 +36,36 @@ export class AuthController {
   @Get('me')
   async me(@CurrentUser() user: any) {
     const dbUser = await this.prisma.user.findUnique({ where: { id: user.sub }, select: { username: true, expiresAt: true } });
-    return { id: user.sub, username: dbUser?.username ?? user.username, email: user.email, role: user.role, resellerId: user.resellerId, expiresAt: dbUser?.expiresAt ?? null };
+    return {
+      id: user.sub,
+      username: dbUser?.username ?? user.username,
+      email: user.email,
+      role: user.role,
+      resellerId: user.resellerId,
+      expiresAt: dbUser?.expiresAt ?? null,
+      impersonatedBy: user.impersonatedBy,
+      impersonatedByEmail: user.impersonatedByEmail,
+    };
+  }
+
+  @Post('impersonate')
+  @Roles(Role.ADMIN)
+  @HttpCode(HttpStatus.OK)
+  async impersonate(
+    @CurrentUser() admin: any,
+    @Body() body: { targetUserId: string },
+  ) {
+    const tokens = await this.auth.impersonate(admin.sub, admin.email, body.targetUserId);
+
+    // Log to audit log
+    await this.audit.log({
+      actorId: admin.sub,
+      action: 'IMPERSONATE',
+      targetType: 'User',
+      targetId: body.targetUserId,
+      metadata: { adminEmail: admin.email },
+    });
+
+    return tokens;
   }
 }

@@ -5,6 +5,8 @@ export interface JwtPayload {
   email: string;
   role: Role;
   resellerId?: string;
+  impersonatedBy?: string;
+  impersonatedByEmail?: string;
 }
 
 export interface AgentAuthPayload {

@@ -3,7 +3,10 @@
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/auth-context';
+import { MobileNavProvider } from '@/lib/mobile-nav-context';
 import { Sidebar } from '@/components/sidebar';
+import { MobileHeader } from '@/components/mobile-header';
+import { ImpersonationBanner } from '@/components/impersonation-banner';
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();
@@ -20,9 +23,17 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   }
 
   return (
-    <div className="flex h-screen">
-      <Sidebar />
-      <main className="flex-1 overflow-auto p-6">{children}</main>
-    </div>
+    <MobileNavProvider>
+      <div className="flex h-screen flex-col">
+        <ImpersonationBanner />
+        <div className="flex flex-1 flex-col overflow-hidden md:flex-row">
+          <Sidebar />
+          <div className="flex flex-1 flex-col overflow-hidden">
+            <MobileHeader />
+            <main className="flex-1 overflow-auto p-4 md:p-6">{children}</main>
+          </div>
+        </div>
+      </div>
+    </MobileNavProvider>
   );
 }

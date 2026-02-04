@@ -9,10 +9,12 @@ import { APP_GUARD } from '@nestjs/core';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { RolesGuard } from '../../common/guards/roles.guard';
 import { AgentAuthGuard } from '../../common/guards/agent-auth.guard';
+import { AuditModule } from '../audit/audit.module';
 
 @Module({
   imports: [
     PassportModule,
+    AuditModule,
     JwtModule.registerAsync({
       imports: [ConfigModule],
       inject: [ConfigService],

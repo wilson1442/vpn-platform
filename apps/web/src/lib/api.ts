@@ -21,6 +21,29 @@ export function clearTokens() {
   }
 }
 
+// Admin session storage for impersonation
+export function storeAdminSession() {
+  if (typeof window !== 'undefined') {
+    const rt = refreshToken || localStorage.getItem('refreshToken');
+    if (rt) {
+      localStorage.setItem('adminRefreshToken', rt);
+    }
+  }
+}
+
+export function restoreAdminSession(): string | null {
+  if (typeof window !== 'undefined') {
+    return localStorage.getItem('adminRefreshToken');
+  }
+  return null;
+}
+
+export function clearAdminSession() {
+  if (typeof window !== 'undefined') {
+    localStorage.removeItem('adminRefreshToken');
+  }
+}
+
 export function getStoredRefreshToken(): string | null {
   if (typeof window !== 'undefined') {
     return localStorage.getItem('refreshToken');

@@ -1,10 +1,12 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { Injectable, UnauthorizedException, ForbiddenException, NotFoundException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import * as argon2 from 'argon2';
 import * as crypto from 'crypto';
 import { PrismaService } from '../../common/prisma.service';
 import { JWT_REFRESH_EXPIRES_MS } from '@vpn/shared';
+
+const IMPERSONATION_EXPIRES_MS = 60 * 60 * 1000; // 1 hour
 
 @Injectable()
 export class AuthService {
@@ -55,19 +57,64 @@ export class AuthService {
     });
   }
 
-  private async generateTokens(user: { id: string; username: string; email: string | null; role: string; resellerId: string | null }) {
-    const payload = { sub: user.id, username: user.username, email: user.email, role: user.role, resellerId: user.resellerId };
+  async impersonate(adminUserId: string, adminEmail: string, targetUserId: string) {
+    // Verify target user exists
+    const targetUser = await this.prisma.user.findUnique({
+      where: { id: targetUserId },
+      select: { id: true, username: true, email: true, role: true, resellerId: true, isActive: true },
+    });
+
+    if (!targetUser) {
+      throw new NotFoundException('Target user not found');
+    }
+
+    // Cannot impersonate ADMIN users
+    if (targetUser.role === 'ADMIN') {
+      throw new ForbiddenException('Cannot impersonate admin users');
+    }
+
+    // Cannot impersonate inactive users
+    if (!targetUser.isActive) {
+      throw new ForbiddenException('Cannot impersonate inactive users');
+    }
+
+    return this.generateTokens(targetUser, {
+      impersonatedBy: adminUserId,
+      impersonatedByEmail: adminEmail,
+      expiresMs: IMPERSONATION_EXPIRES_MS,
+    });
+  }
+
+  private async generateTokens(
+    user: { id: string; username: string; email: string | null; role: string; resellerId: string | null },
+    options?: { impersonatedBy?: string; impersonatedByEmail?: string; expiresMs?: number },
+  ) {
+    const payload: Record<string, any> = {
+      sub: user.id,
+      username: user.username,
+      email: user.email,
+      role: user.role,
+      resellerId: user.resellerId,
+    };
+
+    // Add impersonation metadata if present
+    if (options?.impersonatedBy) {
+      payload.impersonatedBy = options.impersonatedBy;
+      payload.impersonatedByEmail = options.impersonatedByEmail;
+    }
 
     const accessToken = this.jwt.sign(payload);
 
     const rawRefresh = crypto.randomBytes(32).toString('hex');
     const tokenHash = crypto.createHash('sha256').update(rawRefresh).digest('hex');
 
+    const expiresMs = options?.expiresMs ?? JWT_REFRESH_EXPIRES_MS;
+
     await this.prisma.refreshToken.create({
       data: {
         tokenHash,
         userId: user.id,
-        expiresAt: new Date(Date.now() + JWT_REFRESH_EXPIRES_MS),
+        expiresAt: new Date(Date.now() + expiresMs),
       },
     });
 

@@ -2,12 +2,14 @@
 
 import { useEffect, useState } from 'react';
 import { api } from '@/lib/api';
+import { useAuth } from '@/lib/auth-context';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { DataTable } from '@/components/data-table';
 import { Badge } from '@/components/ui/badge';
 
 export default function UsersPage() {
+  const { impersonate } = useAuth();
   const [users, setUsers] = useState<any[]>([]);
   const [packages, setPackages] = useState<any[]>([]);
   const [showCreate, setShowCreate] = useState(false);
@@ -83,9 +85,9 @@ export default function UsersPage() {
 
   return (
     <div>
-      <div className="mb-4 flex items-center justify-between">
+      <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <h1 className="text-3xl font-bold">Users</h1>
-        <Button onClick={() => setShowCreate(!showCreate)}>
+        <Button className="w-full sm:w-auto" onClick={() => setShowCreate(!showCreate)}>
           {showCreate ? 'Cancel' : 'Create User'}
         </Button>
       </div>
@@ -161,8 +163,8 @@ export default function UsersPage() {
       <DataTable
         columns={[
           { key: 'username', header: 'Username' },
-          { key: 'email', header: 'Email', render: (u) => u.email || '-' },
-          { key: 'owner', header: 'Owner', render: (u) => u.reseller ? u.reseller.companyName : 'Panel' },
+          { key: 'email', header: 'Email', hideOnMobile: true, render: (u) => u.email || '-' },
+          { key: 'owner', header: 'Owner', hideOnMobile: true, render: (u) => u.reseller ? u.reseller.companyName : 'Panel' },
           { key: 'role', header: 'Role', render: (u) => <Badge variant={u.role === 'ADMIN' ? 'default' : 'secondary'}>{u.role}</Badge> },
           { key: 'package', header: 'Package', render: (u) => u.entitlement?.package?.name || '-' },
           { key: 'isActive', header: 'Status', render: (u) => {
@@ -172,9 +174,12 @@ export default function UsersPage() {
             return <Badge variant="default">Active</Badge>;
           }},
           { key: 'expiresAt', header: 'Expires', render: (u) => u.expiresAt ? new Date(u.expiresAt).toLocaleDateString() : 'Never' },
-          { key: 'createdAt', header: 'Created', render: (u) => new Date(u.createdAt).toLocaleDateString() },
+          { key: 'createdAt', header: 'Created', hideOnMobile: true, render: (u) => new Date(u.createdAt).toLocaleDateString() },
           { key: 'actions', header: 'Actions', render: (u) => (
             <div className="flex gap-2">
+              {u.role !== 'ADMIN' && (
+                <Button variant="outline" size="sm" onClick={() => impersonate(u.id)}>Login As</Button>
+              )}
               <Button variant="outline" size="sm" onClick={() => startEdit(u)}>Edit</Button>
               <Button variant="outline" size="sm" onClick={() => { setExtendingId(u.id); setExtendPackageId(''); }}>Extend</Button>
               <Button variant="destructive" size="sm" onClick={() => handleDelete(u)}>Delete</Button>
