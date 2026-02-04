@@ -23,6 +23,7 @@ export default function ConfigsPage() {
   const [shortUrls, setShortUrls] = useState<Record<string, { code: string; shortUrl: string | null }>>({});
   const [copiedNode, setCopiedNode] = useState<string | null>(null);
   const [loadingUrl, setLoadingUrl] = useState<string | null>(null);
+  const [generatingAll, setGeneratingAll] = useState(false);
 
   useEffect(() => {
     api('/configs/nodes').then(setNodes).catch(() => {});
@@ -82,6 +83,20 @@ export default function ConfigsPage() {
     }
   };
 
+  const generateAllUrls = async () => {
+    setGeneratingAll(true);
+    try {
+      const results = await api('/configs/short-urls/all', { method: 'POST' });
+      const map: Record<string, { code: string; shortUrl: string | null }> = {};
+      results.forEach((u: any) => { map[u.vpnNodeId] = { code: u.code, shortUrl: u.shortUrl }; });
+      setShortUrls(map);
+    } catch (err: any) {
+      alert(err.message || 'Failed to generate URLs');
+    } finally {
+      setGeneratingAll(false);
+    }
+  };
+
   const handleDownload = async (node: VpnNode) => {
     setDownloading(node.id);
     try {
@@ -105,11 +120,20 @@ export default function ConfigsPage() {
 
   return (
     <div>
-      <div className="mb-6">
-        <h1 className="text-3xl font-bold">VPN Profiles</h1>
-        <p className="mt-1 text-muted-foreground">
-          Download a profile for any server below and import it into your OpenVPN client.
-        </p>
+      <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <h1 className="text-3xl font-bold">VPN Profiles</h1>
+          <p className="mt-1 text-muted-foreground">
+            Download a profile for any server below and import it into your OpenVPN client.
+          </p>
+        </div>
+        <Button
+          className="w-full sm:w-auto"
+          onClick={generateAllUrls}
+          disabled={generatingAll || nodes.length === 0}
+        >
+          {generatingAll ? 'Generating...' : 'Generate All URLs'}
+        </Button>
       </div>
 
       <div className="mb-6 space-y-3">

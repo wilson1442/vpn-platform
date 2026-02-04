@@ -286,6 +286,77 @@ export class ConfigDeliveryService {
     });
   }
 
+  async getOrCreateAllShortUrls(userId: string, baseUrl?: string) {
+    // Check user has active entitlement
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      include: { entitlement: true },
+    });
+    if (!user) throw new NotFoundException('User not found');
+    if (!user.entitlement || !user.entitlement.isActive) {
+      throw new BadRequestException('You need an active subscription');
+    }
+
+    // Get all active VPN nodes
+    const nodes = await this.prisma.vpnNode.findMany({
+      where: { isActive: true },
+      orderBy: { name: 'asc' },
+    });
+
+    if (nodes.length === 0) {
+      throw new NotFoundException('No VPN servers available');
+    }
+
+    const results: Array<{ code: string; shortUrl: string | null; nodeName: string; vpnNodeId: string }> = [];
+
+    for (const node of nodes) {
+      // Check if already exists
+      const existing = await this.prisma.shortUrl.findUnique({
+        where: { userId_vpnNodeId: { userId, vpnNodeId: node.id } },
+      });
+
+      if (existing) {
+        results.push({
+          code: existing.code,
+          shortUrl: existing.shortUrl,
+          nodeName: node.name,
+          vpnNodeId: node.id,
+        });
+        continue;
+      }
+
+      // Generate unique code
+      let code: string;
+      let attempts = 0;
+      do {
+        code = this.generateShortCode();
+        const exists = await this.prisma.shortUrl.findUnique({ where: { code } });
+        if (!exists) break;
+        attempts++;
+      } while (attempts < 10);
+
+      // Try to create TinyURL
+      let tinyUrl: string | null = null;
+      if (baseUrl) {
+        const longUrl = `${baseUrl}/configs/p/${code}`;
+        tinyUrl = await this.createTinyUrl(longUrl);
+      }
+
+      const shortUrlRecord = await this.prisma.shortUrl.create({
+        data: { code, userId, vpnNodeId: node.id, shortUrl: tinyUrl },
+      });
+
+      results.push({
+        code: shortUrlRecord.code,
+        shortUrl: shortUrlRecord.shortUrl,
+        nodeName: node.name,
+        vpnNodeId: node.id,
+      });
+    }
+
+    return results;
+  }
+
   async getProfileByShortCode(code: string) {
     const shortUrl = await this.prisma.shortUrl.findUnique({
       where: { code },

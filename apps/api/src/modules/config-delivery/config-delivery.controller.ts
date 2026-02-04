@@ -99,6 +99,15 @@ export class ConfigDeliveryController {
     return this.configDelivery.getShortUrls(user.sub);
   }
 
+  @Post('short-urls/all')
+  getOrCreateAllShortUrls(
+    @CurrentUser() user: any,
+    @Req() req: Request,
+  ) {
+    const baseUrl = `${req.protocol}://${req.get('host')}`;
+    return this.configDelivery.getOrCreateAllShortUrls(user.sub, baseUrl);
+  }
+
   @Post('short-url/:vpnNodeId')
   getOrCreateShortUrl(
     @CurrentUser() user: any,
