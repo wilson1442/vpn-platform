@@ -338,32 +338,35 @@ install_application() {
     # Create admin user
     info "Creating admin user..."
 
-    cd "${INSTALL_DIR}"
-
-    # Use pnpm to run in the api workspace context
-    pnpm --filter api exec node -e "
+    # Create a temporary seed script
+    cat > "${INSTALL_DIR}/apps/api/seed-admin.js" << 'SEEDEOF'
 const { PrismaClient } = require('@prisma/client');
 const bcrypt = require('bcrypt');
 
 async function main() {
     const prisma = new PrismaClient();
-    const hash = await bcrypt.hash('${ADMIN_PASSWORD}', 10);
+    const hash = await bcrypt.hash(process.env.ADMIN_PASS, 10);
 
     await prisma.user.upsert({
-        where: { email: '${ADMIN_EMAIL}' },
+        where: { email: process.env.ADMIN_EMAIL },
         update: { password: hash },
         create: {
-            email: '${ADMIN_EMAIL}',
+            email: process.env.ADMIN_EMAIL,
             password: hash,
             role: 'ADMIN',
         },
     });
 
-    await prisma.\$disconnect();
+    await prisma.$disconnect();
 }
 
 main().catch(console.error);
-" 2>/dev/null
+SEEDEOF
+
+    # Run the seed script with pnpm
+    cd "${INSTALL_DIR}"
+    ADMIN_EMAIL="${ADMIN_EMAIL}" ADMIN_PASS="${ADMIN_PASSWORD}" pnpm --filter api exec node seed-admin.js 2>/dev/null
+    rm -f "${INSTALL_DIR}/apps/api/seed-admin.js"
 
     success "Admin user created"
 }
