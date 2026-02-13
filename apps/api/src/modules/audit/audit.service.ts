@@ -20,6 +20,16 @@ export class AuditService {
     return this.prisma.auditLog.deleteMany({});
   }
 
+  async purgeHeartbeatLogs() {
+    const result = await this.prisma.auditLog.deleteMany({
+      where: { action: { contains: 'heartbeat' } },
+    });
+    if (result.count > 0) {
+      console.log(`Purged ${result.count} heartbeat entries from audit log`);
+    }
+    return result;
+  }
+
   async findAll(filters: { action?: string; actorId?: string; limit?: number }) {
     return this.prisma.auditLog.findMany({
       where: {

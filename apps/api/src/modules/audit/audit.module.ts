@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Module, OnModuleInit } from '@nestjs/common';
 import { APP_INTERCEPTOR } from '@nestjs/core';
 import { AuditService } from './audit.service';
 import { AuditController } from './audit.controller';
@@ -16,4 +16,10 @@ import { AuditInterceptor } from './audit.interceptor';
   controllers: [AuditController],
   exports: [AuditService],
 })
-export class AuditModule {}
+export class AuditModule implements OnModuleInit {
+  constructor(private audit: AuditService) {}
+
+  async onModuleInit() {
+    await this.audit.purgeHeartbeatLogs();
+  }
+}

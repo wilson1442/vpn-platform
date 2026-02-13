@@ -3,6 +3,7 @@ import { Observable, tap } from 'rxjs';
 import { AuditService } from './audit.service';
 
 const SENSITIVE_FIELDS = ['password', 'refreshToken', 'accessToken', 'token', 'secret', 'caKeyEncrypted', 'keyEncrypted'];
+const SKIP_ROUTES = ['/vpn-nodes/heartbeat'];
 
 @Injectable()
 export class AuditInterceptor implements NestInterceptor {
@@ -14,6 +15,12 @@ export class AuditInterceptor implements NestInterceptor {
 
     // Only audit mutating operations
     if (!['POST', 'PATCH', 'PUT', 'DELETE'].includes(method)) {
+      return next.handle();
+    }
+
+    // Skip noisy routes (e.g. successful heartbeats)
+    const routePath = request.route?.path || request.url;
+    if (SKIP_ROUTES.some((r) => routePath.includes(r))) {
       return next.handle();
     }
 

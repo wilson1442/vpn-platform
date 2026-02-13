@@ -17,10 +17,10 @@ import {
 } from '@/components/ui/dialog';
 
 export default function ResellersPage() {
-  const { impersonate } = useAuth();
+  const { user, impersonate } = useAuth();
   const [resellers, setResellers] = useState<any[]>([]);
   const [showCreate, setShowCreate] = useState(false);
-  const [form, setForm] = useState({ userId: '', companyName: '', parentId: '', maxDepth: '3' });
+  const [form, setForm] = useState({ userId: '', companyName: '', parentId: '' });
   const [editTarget, setEditTarget] = useState<any>(null);
   const [editForm, setEditForm] = useState({ companyName: '', maxDepth: '3' });
   const [editLoading, setEditLoading] = useState(false);
@@ -38,11 +38,10 @@ export default function ResellersPage() {
         userId: form.userId,
         companyName: form.companyName,
         parentId: form.parentId || undefined,
-        maxDepth: parseInt(form.maxDepth),
       }),
     });
     setShowCreate(false);
-    setForm({ userId: '', companyName: '', parentId: '', maxDepth: '3' });
+    setForm({ userId: '', companyName: '', parentId: '' });
     load();
   };
 
@@ -103,8 +102,18 @@ export default function ResellersPage() {
         <form onSubmit={handleCreate} className="mb-6 space-y-3 rounded-lg border p-4">
           <Input placeholder="User ID" value={form.userId} onChange={(e) => setForm({ ...form, userId: e.target.value })} required />
           <Input placeholder="Name" value={form.companyName} onChange={(e) => setForm({ ...form, companyName: e.target.value })} required />
-          <Input placeholder="Parent Reseller ID (optional)" value={form.parentId} onChange={(e) => setForm({ ...form, parentId: e.target.value })} />
-          <Input placeholder="Max Depth" type="number" value={form.maxDepth} onChange={(e) => setForm({ ...form, maxDepth: e.target.value })} />
+          {user?.role === 'ADMIN' && (
+            <select
+              className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+              value={form.parentId}
+              onChange={(e) => setForm({ ...form, parentId: e.target.value })}
+            >
+              <option value="">No Parent (Top-level)</option>
+              {resellers.map((r) => (
+                <option key={r.id} value={r.id}>{r.companyName}</option>
+              ))}
+            </select>
+          )}
           <Button type="submit">Create</Button>
         </form>
       )}
