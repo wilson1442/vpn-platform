@@ -5,6 +5,7 @@ import { api, apiRaw, apiUpload } from '@/lib/api';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
+import { UpdateWizard } from '@/components/update-wizard';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
 
@@ -25,10 +26,7 @@ export default function SettingsPage() {
   const [saving, setSaving] = useState(false);
   const [uploadingLogo, setUploadingLogo] = useState(false);
   const [downloadingBackup, setDownloadingBackup] = useState(false);
-  const [checkingUpdates, setCheckingUpdates] = useState(false);
-  const [applyingUpdate, setApplyingUpdate] = useState(false);
-  const [updateStatus, setUpdateStatus] = useState<{ behindBy: number; currentCommit: string; remoteCommit: string } | null>(null);
-  const [updateOutput, setUpdateOutput] = useState<string | null>(null);
+  const [updateDialogOpen, setUpdateDialogOpen] = useState(false);
   const [message, setMessage] = useState<{ text: string; type: 'success' | 'error' } | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
 
@@ -121,43 +119,6 @@ export default function SettingsPage() {
     }
   };
 
-  const handleCheckUpdates = async () => {
-    setCheckingUpdates(true);
-    setUpdateStatus(null);
-    setUpdateOutput(null);
-    try {
-      const result = await api<{ behindBy: number; currentCommit: string; remoteCommit: string }>('/settings/update/check', {
-        method: 'POST',
-      });
-      setUpdateStatus(result);
-      if (result.behindBy === 0) {
-        showMessage('Already up to date', 'success');
-      } else {
-        showMessage(`${result.behindBy} update(s) available`, 'success');
-      }
-    } catch (err: any) {
-      showMessage(err.message || 'Failed to check for updates', 'error');
-    } finally {
-      setCheckingUpdates(false);
-    }
-  };
-
-  const handleApplyUpdate = async () => {
-    if (!window.confirm('Apply update? The server may need to be restarted afterward.')) return;
-    setApplyingUpdate(true);
-    setUpdateOutput(null);
-    try {
-      const result = await api<{ output: string }>('/settings/update/apply', { method: 'POST' });
-      setUpdateOutput(result.output);
-      showMessage('Update applied', 'success');
-      setUpdateStatus(null);
-    } catch (err: any) {
-      showMessage(err.message || 'Failed to apply update', 'error');
-    } finally {
-      setApplyingUpdate(false);
-    }
-  };
-
   if (!settings) {
     if (loadError) {
       return <div className="text-red-600 dark:text-red-400">{loadError}</div>;
@@ -236,7 +197,7 @@ export default function SettingsPage() {
 
         <Card>
           <CardHeader>
-            <CardTitle>Updates</CardTitle>
+            <CardTitle>System Updates</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <div>
@@ -247,28 +208,16 @@ export default function SettingsPage() {
                 placeholder="https://github.com/user/repo"
               />
             </div>
-            <div className="flex gap-2">
-              <Button onClick={handleCheckUpdates} disabled={checkingUpdates} variant="outline">
-                {checkingUpdates ? 'Checking...' : 'Check for Updates'}
-              </Button>
-              {updateStatus && updateStatus.behindBy > 0 && (
-                <Button onClick={handleApplyUpdate} disabled={applyingUpdate}>
-                  {applyingUpdate ? 'Applying...' : `Apply Update (${updateStatus.behindBy} commit${updateStatus.behindBy > 1 ? 's' : ''})`}
-                </Button>
-              )}
-            </div>
-            {updateStatus && (
-              <div className="rounded-md border p-3 text-sm">
-                <p>Current: <code className="text-xs">{updateStatus.currentCommit.slice(0, 8)}</code></p>
-                <p>Remote: <code className="text-xs">{updateStatus.remoteCommit.slice(0, 8)}</code></p>
-                <p>Behind by: {updateStatus.behindBy} commit(s)</p>
-              </div>
-            )}
-            {updateOutput && (
-              <pre className="max-h-48 overflow-auto rounded-md bg-muted p-3 text-xs">{updateOutput}</pre>
-            )}
+            <p className="text-sm text-muted-foreground">
+              Check for and install system updates from GitHub.
+            </p>
+            <Button onClick={() => setUpdateDialogOpen(true)}>
+              Manage Updates
+            </Button>
           </CardContent>
         </Card>
+
+        <UpdateWizard open={updateDialogOpen} onOpenChange={setUpdateDialogOpen} />
 
         <div className="flex justify-end">
           <Button onClick={handleSaveSettings} disabled={saving}>

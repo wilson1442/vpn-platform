@@ -31,6 +31,12 @@ export class SettingsController {
     return this.settings.getPublicSettings();
   }
 
+  @Get('version')
+  @Public()
+  getVersion() {
+    return this.settings.getVersion();
+  }
+
   @Patch()
   @Roles(Role.ADMIN)
   updateSettings(@Body() body: { siteName?: string; licenseKey?: string; githubRepo?: string }) {
@@ -69,6 +75,12 @@ export class SettingsController {
   @Roles(Role.ADMIN)
   checkForUpdates() {
     return this.settings.checkForUpdates();
+  }
+
+  @Post('update/download')
+  @Roles(Role.ADMIN)
+  downloadUpdate() {
+    return this.settings.downloadUpdate();
   }
 
   @Post('update/apply')

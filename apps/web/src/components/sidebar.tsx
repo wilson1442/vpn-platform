@@ -63,6 +63,11 @@ interface PublicSettings {
   logoPath: string | null;
 }
 
+interface VersionInfo {
+  version: string;
+  commit: string;
+}
+
 function NavLink({ item, pathname, onNavigate }: { item: NavItem; pathname: string; onNavigate?: () => void }) {
   const [expanded, setExpanded] = useState(false);
   const hasChildren = item.children && item.children.length > 0;
@@ -134,12 +139,20 @@ export function Sidebar() {
   const pathname = usePathname();
   const { isOpen, close } = useMobileNav();
   const [branding, setBranding] = useState<PublicSettings>({ siteName: 'VPN Platform', logoPath: null });
+  const [versionInfo, setVersionInfo] = useState<VersionInfo | null>(null);
 
   useEffect(() => {
     fetch(`${API_URL}/settings/public`)
       .then((r) => (r.ok ? r.json() : null))
       .then((data) => {
         if (data) setBranding(data);
+      })
+      .catch(() => {});
+
+    fetch(`${API_URL}/settings/version`)
+      .then((r) => (r.ok ? r.json() : null))
+      .then((data) => {
+        if (data) setVersionInfo(data);
       })
       .catch(() => {});
   }, []);
@@ -200,6 +213,11 @@ export function Sidebar() {
           ))}
         </nav>
         <div className="border-t p-4">
+          {versionInfo && (
+            <p className="mb-1 text-xs text-muted-foreground/60">
+              v{versionInfo.version}
+            </p>
+          )}
           <p className="mb-2 text-xs text-muted-foreground">{user?.email}</p>
           <Button variant="outline" size="sm" className="w-full" onClick={logout}>
             Logout
