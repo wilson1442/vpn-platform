@@ -12,7 +12,7 @@ const execAsync = promisify(exec);
 export class SettingsService {
   private readonly logger = new Logger(SettingsService.name);
   private readonly uploadsDir = path.join(process.cwd(), 'uploads');
-  private readonly repoDir = path.resolve(process.cwd(), '..');
+  private readonly repoDir = path.resolve(process.cwd(), '../..');
 
   constructor(private prisma: PrismaService) {
     if (!fsSync.existsSync(this.uploadsDir)) {
