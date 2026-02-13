@@ -4,6 +4,7 @@ A production-grade SaaS VPN management platform built on OpenVPN Community Serve
 
 ## Table of Contents
 
+- [Quick Start](#quick-start)
 - [Architecture](#architecture)
 - [Tech Stack](#tech-stack)
 - [Features](#features)
@@ -17,6 +18,30 @@ A production-grade SaaS VPN management platform built on OpenVPN Community Serve
 - [Environment Variables](#environment-variables)
 - [Development](#development)
 - [Key Design Decisions](#key-design-decisions)
+
+## Quick Start
+
+Run the interactive installer with a single command:
+
+```bash
+wget -qO- https://raw.githubusercontent.com/wilson1442/vpn-platform/main/install.sh | bash
+```
+
+Or using curl:
+
+```bash
+curl -sSL https://raw.githubusercontent.com/wilson1442/vpn-platform/main/install.sh | bash
+```
+
+The installer will guide you through:
+- Installation type (Docker or Native)
+- Domain configuration
+- SMTP settings
+- Admin account creation
+- Database setup
+- Automatic secret generation
+
+All configuration is logged to `install-notes.log` (with sensitive values masked).
 
 ## Architecture
 
@@ -80,6 +105,10 @@ corepack prepare pnpm@9.15.4 --activate
 ```
 
 ## Installation
+
+> **Recommended:** Use the [Quick Start](#quick-start) installer for automated setup.
+
+For manual installation, follow the steps below:
 
 ### 1. Clone the repository
 
