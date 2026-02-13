@@ -279,8 +279,9 @@ generate_secrets() {
 }
 
 create_env_file() {
-    info "Creating .env file..."
+    info "Creating .env files..."
 
+    # Create root .env
     cat > "${INSTALL_DIR}/.env" << EOF
 # Database
 DATABASE_URL=postgresql://${DB_USER}:${DB_PASS}@localhost:5432/${DB_NAME}
@@ -308,7 +309,11 @@ STRIPE_WEBHOOK_SECRET=
 NEXT_PUBLIC_API_URL=http://localhost:3000
 EOF
 
-    success ".env file created"
+    # Copy to apps that need it
+    cp "${INSTALL_DIR}/.env" "${INSTALL_DIR}/apps/api/.env"
+    cp "${INSTALL_DIR}/.env" "${INSTALL_DIR}/apps/web/.env"
+
+    success ".env files created"
 }
 
 install_application() {
