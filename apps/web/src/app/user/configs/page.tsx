@@ -26,12 +26,19 @@ export default function ConfigsPage() {
   const [generatingAll, setGeneratingAll] = useState(false);
 
   useEffect(() => {
-    api('/configs/nodes').then(setNodes).catch(() => {});
-    api('/configs/short-urls').then((urls: ShortUrlData[]) => {
-      const map: Record<string, { code: string; shortUrl: string | null }> = {};
-      urls.forEach((u) => { map[u.vpnNodeId] = { code: u.code, shortUrl: u.shortUrl }; });
-      setShortUrls(map);
-    }).catch(() => {});
+    api('/configs/nodes')
+      .then((data) => {
+        if (Array.isArray(data)) setNodes(data);
+      })
+      .catch(() => {});
+    api('/configs/short-urls')
+      .then((urls) => {
+        if (!Array.isArray(urls)) return;
+        const map: Record<string, { code: string; shortUrl: string | null }> = {};
+        urls.forEach((u: ShortUrlData) => { map[u.vpnNodeId] = { code: u.code, shortUrl: u.shortUrl }; });
+        setShortUrls(map);
+      })
+      .catch(() => {});
   }, []);
 
   const getProfileUrl = (nodeId: string) => {
@@ -87,6 +94,9 @@ export default function ConfigsPage() {
     setGeneratingAll(true);
     try {
       const results = await api('/configs/short-urls/all', { method: 'POST' });
+      if (!Array.isArray(results)) {
+        throw new Error('Invalid response');
+      }
       const map: Record<string, { code: string; shortUrl: string | null }> = {};
       results.forEach((u: any) => { map[u.vpnNodeId] = { code: u.code, shortUrl: u.shortUrl }; });
       setShortUrls(map);

@@ -9,7 +9,21 @@
       "Bash(npx tsc:*)",
       "Bash(git init:*)",
       "Bash(git checkout:*)",
-      "Bash(git add:*)"
+      "Bash(git add:*)",
+      "Bash(git commit -m \"$\\(cat <<''EOF''\nInitial commit: VPN Platform MVP\n\nFull SaaS VPN management platform with NestJS API, Next.js frontend,\nand OpenVPN node-agent. Includes multi-level reseller support, PKI\nmanagement, hard concurrency enforcement, Stripe billing, and\ncomprehensive audit logging.\n\nCo-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>\nEOF\n\\)\")",
+      "Bash(git remote add origin https://wilson1442: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@github.com/wilson1442/vpn-platform.git)",
+      "Bash(git push:*)",
+      "Bash(git remote set-url:*)",
+      "Bash(pnpm --filter api build:*)",
+      "Bash(pnpm --filter web build:*)",
+      "Bash(pgrep:*)",
+      "Bash(bash:*)",
+      "Bash(curl:*)",
+      "Bash(printf '{\"\"username\"\":\"\"admin@vpn-platform.local\"\",\"\"password\"\":\"\"admin123!@#\"\"}')",
+      "Bash(python3 -c \"\nimport urllib.request, json\ndata = json.dumps\\({''username'': ''admin@vpn-platform.local'', ''password'': ''admin123!@#''}\\).encode\\(\\)\nreq = urllib.request.Request\\(''http://localhost:3000/auth/login'', data=data, headers={''Content-Type'': ''application/json''}\\)\nresp = urllib.request.urlopen\\(req\\)\ntokens = json.loads\\(resp.read\\(\\)\\)\ntoken = tokens[''accessToken'']\n\n# Now create a package\ndata2 = json.dumps\\({''name'': ''Test Package'', ''duration'': ''1m'', ''description'': ''test'', ''maxConnections'': 2, ''maxDevices'': 3, ''priceMonthly'': 999, ''creditCost'': 0}\\).encode\\(\\)\nreq2 = urllib.request.Request\\(''http://localhost:3000/packages'', data=data2, headers={''Content-Type'': ''application/json'', ''Authorization'': f''Bearer {token}''}\\)\nresp2 = urllib.request.urlopen\\(req2\\)\nprint\\(resp2.read\\(\\).decode\\(\\)\\)\n\")",
+      "Bash(python3:*)",
+      "Bash(nginx -t:*)",
+      "Bash(nginx -s reload:*)"
     ]
   }
 }
