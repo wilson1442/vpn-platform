@@ -8,6 +8,7 @@
 - Stop logging successful heartbeats to audit log (reduces noise)
 - Purge existing heartbeat entries from audit log on API startup
 - Add node heartbeat status cards to audit log page with live online/offline indicators
+- Increase action icon size on resellers and users pages
 
 ## v0.0.2
 
