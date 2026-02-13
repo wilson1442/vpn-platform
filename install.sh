@@ -415,6 +415,18 @@ clone_repository() {
             git pull origin main
             success "Repository updated"
         fi
+    elif [ -d "$INSTALL_DIR" ]; then
+        # Directory exists but isn't a valid repo
+        warn "Directory ${INSTALL_DIR} exists but is not a valid installation"
+
+        if prompt_confirm "Remove and re-clone?" "y"; then
+            rm -rf "$INSTALL_DIR"
+            info "Cloning repository to ${INSTALL_DIR}..."
+            git clone "$REPO_URL" "$INSTALL_DIR"
+            success "Repository cloned"
+        else
+            fatal "Cannot continue without a valid repository"
+        fi
     else
         info "Cloning repository to ${INSTALL_DIR}..."
 
