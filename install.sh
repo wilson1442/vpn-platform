@@ -333,6 +333,13 @@ install_application() {
     info "Building application (this may take a few minutes)..."
     pnpm build 2>&1 | tail -5
 
+    # Copy static files for Next.js standalone build
+    info "Preparing standalone web build..."
+    if [ -d "${INSTALL_DIR}/apps/web/.next/standalone" ]; then
+        cp -r "${INSTALL_DIR}/apps/web/public" "${INSTALL_DIR}/apps/web/.next/standalone/apps/web/" 2>/dev/null || true
+        cp -r "${INSTALL_DIR}/apps/web/.next/static" "${INSTALL_DIR}/apps/web/.next/standalone/apps/web/.next/" 2>/dev/null || true
+    fi
+
     success "Application built"
 
     # Create admin user
@@ -393,7 +400,7 @@ Environment=NODE_ENV=production
 WantedBy=multi-user.target
 EOF
 
-    # Web Service
+    # Web Service - Next.js standalone in monorepo has server.js in apps/web subdirectory
     cat > /etc/systemd/system/vpn-web.service << EOF
 [Unit]
 Description=VPN Platform Web
@@ -402,8 +409,8 @@ After=network.target vpn-api.service
 [Service]
 Type=simple
 User=root
-WorkingDirectory=${INSTALL_DIR}/apps/web
-ExecStart=/usr/bin/node .next/standalone/server.js
+WorkingDirectory=${INSTALL_DIR}/apps/web/.next/standalone/apps/web
+ExecStart=/usr/bin/node server.js
 Restart=on-failure
 RestartSec=10
 Environment=NODE_ENV=production
