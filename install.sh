@@ -29,7 +29,6 @@ BOLD='\033[1m'
 # Defaults
 INSTALL_DIR="/opt/vpn-platform"
 LOG_FILE="${INSTALL_DIR}/install-notes.log"
-INSTALL_TYPE="docker"
 REPO_URL="https://github.com/wilson1442/vpn-platform.git"
 
 # Functions
@@ -60,7 +59,6 @@ log_masked() {
 
 info() {
     echo -e "${BLUE}[INFO]${NC} $1"
-    # Only log if log file directory exists
     if [ -d "$(dirname "$LOG_FILE")" ]; then
         log "INFO: $1"
     fi
@@ -141,32 +139,6 @@ prompt_confirm() {
     esac
 }
 
-prompt_choice() {
-    local var_name="$1"
-    local prompt_text="$2"
-    shift 2
-    local options=("$@")
-
-    echo -e "${CYAN}${prompt_text}:${NC}"
-    local i=1
-    for opt in "${options[@]}"; do
-        echo -e "  ${BOLD}$i)${NC} $opt"
-        ((i++))
-    done
-
-    while true; do
-        echo -en "${CYAN}Enter choice [1-${#options[@]}]: ${NC}"
-        read choice
-
-        if [[ "$choice" =~ ^[0-9]+$ ]] && [ "$choice" -ge 1 ] && [ "$choice" -le "${#options[@]}" ]; then
-            eval "$var_name=\"${options[$((choice-1))]}\""
-            return 0
-        fi
-
-        echo -e "${RED}Invalid choice. Please try again.${NC}"
-    done
-}
-
 validate_domain() {
     local domain="$1"
     if [[ "$domain" =~ ^[a-zA-Z0-9][a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$ ]]; then
@@ -237,52 +209,53 @@ install_dependencies() {
             # Install basic dependencies
             apt-get install -y -qq curl git openssl ca-certificates gnupg lsb-release
 
-            if [ "$INSTALL_TYPE" = "Docker (recommended)" ]; then
-                # Install Docker if not present
-                if ! command -v docker &> /dev/null; then
-                    info "Installing Docker..."
-
-                    # Add Docker's official GPG key
-                    install -m 0755 -d /etc/apt/keyrings
-                    curl -fsSL https://download.docker.com/linux/$os/gpg | gpg --dearmor -o /etc/apt/keyrings/docker.gpg
-                    chmod a+r /etc/apt/keyrings/docker.gpg
-
-                    # Add the repository
-                    echo \
-                        "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/$os \
-                        $(lsb_release -cs) stable" | tee /etc/apt/sources.list.d/docker.list > /dev/null
-
-                    apt-get update -qq
-                    apt-get install -y -qq docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
-
-                    # Start and enable Docker
-                    systemctl start docker
-                    systemctl enable docker
-
-                    success "Docker installed"
-                else
-                    info "Docker already installed"
-                fi
+            # Install Node.js 20 if not present
+            if ! command -v node &> /dev/null; then
+                info "Installing Node.js 20..."
+                curl -fsSL https://deb.nodesource.com/setup_20.x | bash -
+                apt-get install -y -qq nodejs
+                success "Node.js installed"
             else
-                # Native installation - install Node.js, pnpm, PostgreSQL client
-                if ! command -v node &> /dev/null; then
-                    info "Installing Node.js 20..."
+                node_version=$(node -v | cut -d'v' -f2 | cut -d'.' -f1)
+                if [ "$node_version" -lt 20 ]; then
+                    info "Upgrading Node.js to v20..."
                     curl -fsSL https://deb.nodesource.com/setup_20.x | bash -
                     apt-get install -y -qq nodejs
-                    success "Node.js installed"
+                    success "Node.js upgraded"
+                else
+                    info "Node.js $(node -v) already installed"
                 fi
+            fi
 
-                if ! command -v pnpm &> /dev/null; then
-                    info "Installing pnpm..."
-                    npm install -g pnpm
-                    success "pnpm installed"
-                fi
+            # Install pnpm
+            if ! command -v pnpm &> /dev/null; then
+                info "Installing pnpm..."
+                npm install -g pnpm
+                success "pnpm installed"
+            else
+                info "pnpm already installed"
+            fi
 
-                if ! command -v psql &> /dev/null; then
-                    info "Installing PostgreSQL client..."
-                    apt-get install -y -qq postgresql-client
-                    success "PostgreSQL client installed"
-                fi
+            # Install PostgreSQL
+            if ! command -v psql &> /dev/null; then
+                info "Installing PostgreSQL..."
+                apt-get install -y -qq postgresql postgresql-contrib
+                systemctl start postgresql
+                systemctl enable postgresql
+                success "PostgreSQL installed"
+            else
+                info "PostgreSQL already installed"
+            fi
+
+            # Install Redis
+            if ! command -v redis-server &> /dev/null; then
+                info "Installing Redis..."
+                apt-get install -y -qq redis-server
+                systemctl start redis-server
+                systemctl enable redis-server
+                success "Redis installed"
+            else
+                info "Redis already installed"
             fi
             ;;
 
@@ -296,69 +269,60 @@ install_dependencies() {
                 yum install -y -q curl git openssl ca-certificates
             fi
 
-            if [ "$INSTALL_TYPE" = "Docker (recommended)" ]; then
-                if ! command -v docker &> /dev/null; then
-                    info "Installing Docker..."
-
-                    if command -v dnf &> /dev/null; then
-                        dnf config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
-                        dnf install -y -q docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
-                    else
-                        yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
-                        yum install -y -q docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
-                    fi
-
-                    systemctl start docker
-                    systemctl enable docker
-
-                    success "Docker installed"
+            # Install Node.js 20
+            if ! command -v node &> /dev/null; then
+                info "Installing Node.js 20..."
+                curl -fsSL https://rpm.nodesource.com/setup_20.x | bash -
+                if command -v dnf &> /dev/null; then
+                    dnf install -y -q nodejs
                 else
-                    info "Docker already installed"
+                    yum install -y -q nodejs
                 fi
-            else
-                # Native installation
-                if ! command -v node &> /dev/null; then
-                    info "Installing Node.js 20..."
-                    curl -fsSL https://rpm.nodesource.com/setup_20.x | bash -
-                    if command -v dnf &> /dev/null; then
-                        dnf install -y -q nodejs
-                    else
-                        yum install -y -q nodejs
-                    fi
-                    success "Node.js installed"
-                fi
+                success "Node.js installed"
+            fi
 
-                if ! command -v pnpm &> /dev/null; then
-                    info "Installing pnpm..."
-                    npm install -g pnpm
-                    success "pnpm installed"
-                fi
+            # Install pnpm
+            if ! command -v pnpm &> /dev/null; then
+                info "Installing pnpm..."
+                npm install -g pnpm
+                success "pnpm installed"
+            fi
 
-                if ! command -v psql &> /dev/null; then
-                    info "Installing PostgreSQL client..."
-                    if command -v dnf &> /dev/null; then
-                        dnf install -y -q postgresql
-                    else
-                        yum install -y -q postgresql
-                    fi
-                    success "PostgreSQL client installed"
+            # Install PostgreSQL
+            if ! command -v psql &> /dev/null; then
+                info "Installing PostgreSQL..."
+                if command -v dnf &> /dev/null; then
+                    dnf install -y -q postgresql-server postgresql-contrib
+                else
+                    yum install -y -q postgresql-server postgresql-contrib
                 fi
+                postgresql-setup --initdb 2>/dev/null || true
+                systemctl start postgresql
+                systemctl enable postgresql
+                success "PostgreSQL installed"
+            fi
+
+            # Install Redis
+            if ! command -v redis-server &> /dev/null; then
+                info "Installing Redis..."
+                if command -v dnf &> /dev/null; then
+                    dnf install -y -q redis
+                else
+                    yum install -y -q redis
+                fi
+                systemctl start redis
+                systemctl enable redis
+                success "Redis installed"
             fi
             ;;
 
         *)
             warn "Unknown OS: $os. Please install dependencies manually:"
-            echo "  - curl"
-            echo "  - git"
-            echo "  - openssl"
-            if [ "$INSTALL_TYPE" = "Docker (recommended)" ]; then
-                echo "  - docker"
-                echo "  - docker-compose"
-            else
-                echo "  - nodejs (v20+)"
-                echo "  - pnpm"
-                echo "  - postgresql-client"
-            fi
+            echo "  - curl, git, openssl"
+            echo "  - Node.js v20+"
+            echo "  - pnpm"
+            echo "  - PostgreSQL"
+            echo "  - Redis"
 
             if ! prompt_confirm "Continue anyway?" "n"; then
                 exit 1
@@ -389,34 +353,29 @@ check_prerequisites() {
         missing+=("openssl")
     fi
 
-    if [ "$INSTALL_TYPE" = "Docker (recommended)" ]; then
-        # Check for Docker
-        if ! command -v docker &> /dev/null; then
-            missing+=("docker")
-        fi
-
-        # Check for Docker Compose
-        if ! docker compose version &> /dev/null && ! command -v docker-compose &> /dev/null; then
-            missing+=("docker-compose")
-        fi
+    # Check for Node.js
+    if ! command -v node &> /dev/null; then
+        missing+=("node (v20+)")
     else
-        # Native installation requirements
-        if ! command -v node &> /dev/null; then
-            missing+=("node (v20+)")
-        else
-            node_version=$(node -v | cut -d'v' -f2 | cut -d'.' -f1)
-            if [ "$node_version" -lt 20 ]; then
-                missing+=("node (v20+ required, found v$node_version)")
-            fi
+        node_version=$(node -v | cut -d'v' -f2 | cut -d'.' -f1)
+        if [ "$node_version" -lt 20 ]; then
+            missing+=("node (v20+ required, found v$node_version)")
         fi
+    fi
 
-        if ! command -v pnpm &> /dev/null; then
-            missing+=("pnpm")
-        fi
+    # Check for pnpm
+    if ! command -v pnpm &> /dev/null; then
+        missing+=("pnpm")
+    fi
 
-        if ! command -v psql &> /dev/null; then
-            missing+=("postgresql-client")
-        fi
+    # Check for PostgreSQL
+    if ! command -v psql &> /dev/null; then
+        missing+=("postgresql")
+    fi
+
+    # Check for Redis
+    if ! command -v redis-server &> /dev/null && ! command -v redis-cli &> /dev/null; then
+        missing+=("redis")
     fi
 
     if [ ${#missing[@]} -gt 0 ]; then
@@ -429,6 +388,17 @@ check_prerequisites() {
     fi
 
     success "All prerequisites verified"
+}
+
+setup_database() {
+    info "Setting up PostgreSQL database..."
+
+    # Create database user and database
+    sudo -u postgres psql -c "CREATE USER ${DB_USER} WITH PASSWORD '${DB_PASS}';" 2>/dev/null || true
+    sudo -u postgres psql -c "CREATE DATABASE ${DB_NAME} OWNER ${DB_USER};" 2>/dev/null || true
+    sudo -u postgres psql -c "GRANT ALL PRIVILEGES ON DATABASE ${DB_NAME} TO ${DB_USER};" 2>/dev/null || true
+
+    success "Database configured"
 }
 
 clone_repository() {
@@ -468,12 +438,6 @@ clone_repository() {
 collect_configuration() {
     echo
     echo -e "${BOLD}=== Installation Configuration ===${NC}"
-    echo
-
-    # Installation type
-    prompt_choice INSTALL_TYPE "Select installation type" "Docker (recommended)" "Native"
-    log "Installation type: $INSTALL_TYPE"
-
     echo
 
     # Domain
@@ -560,11 +524,7 @@ collect_configuration() {
         prompt DB_NAME "Database Name" "vpn_platform"
     fi
 
-    if [ "$INSTALL_TYPE" = "Docker (recommended)" ]; then
-        DB_HOST="postgres"
-    else
-        prompt DB_HOST "Database Host" "localhost"
-    fi
+    DB_HOST="localhost"
 
     log "Database User: $DB_USER"
     log_masked "Database Password" "$DB_PASS"
@@ -622,9 +582,6 @@ EOF
 STRIPE_SECRET_KEY=
 STRIPE_WEBHOOK_SECRET=
 
-# Node Agent
-AGENT_API_BASE_URL=http://api:3000
-
 # Frontend
 NEXT_PUBLIC_API_URL=https://${DOMAIN}/api
 EOF
@@ -633,163 +590,30 @@ EOF
     log "Created .env file"
 }
 
-create_docker_compose_override() {
-    info "Creating docker-compose.override.yml..."
-
-    cat > "${INSTALL_DIR}/docker-compose.override.yml" << EOF
-version: "3.9"
-
-services:
-  postgres:
-    environment:
-      POSTGRES_USER: ${DB_USER}
-      POSTGRES_PASSWORD: ${DB_PASS}
-      POSTGRES_DB: ${DB_NAME}
-
-  api:
-    environment:
-      DATABASE_URL: postgresql://${DB_USER}:${DB_PASS}@postgres:5432/${DB_NAME}
-      JWT_ACCESS_SECRET: \${JWT_ACCESS_SECRET}
-      JWT_REFRESH_SECRET: \${JWT_REFRESH_SECRET}
-      PKI_ENCRYPTION_KEY: \${PKI_ENCRYPTION_KEY}
-      SMTP_HOST: ${SMTP_HOST}
-      SMTP_PORT: "${SMTP_PORT}"
-      SMTP_FROM: ${SMTP_FROM}
-EOF
-
-    if [ -n "$SMTP_USER" ]; then
-        cat >> "${INSTALL_DIR}/docker-compose.override.yml" << EOF
-      SMTP_USER: ${SMTP_USER}
-      SMTP_PASS: \${SMTP_PASS}
-EOF
-    fi
-
-    cat >> "${INSTALL_DIR}/docker-compose.override.yml" << EOF
-
-  web:
-    environment:
-      NEXT_PUBLIC_API_URL: https://${DOMAIN}/api
-EOF
-
-    success "docker-compose.override.yml created"
-    log "Created docker-compose.override.yml"
-}
-
-install_docker() {
-    info "Starting Docker installation..."
-    log "=== Docker Installation Started ==="
-
-    cd "$INSTALL_DIR"
-
-    # Create override file for custom configuration
-    create_docker_compose_override
-
-    # Pull and build
-    info "Building Docker images (this may take several minutes)..."
-    log "Running: docker compose build"
-
-    if docker compose build 2>&1 | tee -a "$LOG_FILE"; then
-        success "Docker images built"
-    else
-        fatal "Failed to build Docker images"
-    fi
-
-    # Start services
-    info "Starting services..."
-    log "Running: docker compose up -d"
-
-    if docker compose up -d 2>&1 | tee -a "$LOG_FILE"; then
-        success "Services started"
-    else
-        fatal "Failed to start services"
-    fi
-
-    # Wait for services to be healthy
-    info "Waiting for services to be healthy..."
-    local max_attempts=60
-    local attempt=0
-
-    while [ $attempt -lt $max_attempts ]; do
-        if docker compose ps | grep -q "healthy"; then
-            postgres_healthy=$(docker compose ps postgres 2>/dev/null | grep -c "healthy" || echo "0")
-            if [ "$postgres_healthy" -gt 0 ]; then
-                success "Services are healthy"
-                break
-            fi
-        fi
-
-        sleep 2
-        ((attempt++))
-        echo -n "."
-    done
-    echo
-
-    if [ $attempt -ge $max_attempts ]; then
-        warn "Services may not be fully healthy. Continuing anyway..."
-    fi
-
-    # Run migrations
-    info "Running database migrations..."
-    log "Running: docker compose exec api pnpm db:migrate"
-
-    if docker compose exec -T api pnpm db:migrate 2>&1 | tee -a "$LOG_FILE"; then
-        success "Migrations completed"
-    else
-        fatal "Failed to run migrations"
-    fi
-
-    # Seed admin user
-    info "Creating admin user..."
-    log "Creating admin user: $ADMIN_EMAIL"
-
-    local seed_script="
-const { PrismaClient } = require('@prisma/client');
-const bcrypt = require('bcrypt');
-
-async function main() {
-    const prisma = new PrismaClient();
-    const hash = await bcrypt.hash('${ADMIN_PASSWORD}', 10);
-
-    await prisma.user.upsert({
-        where: { email: '${ADMIN_EMAIL}' },
-        update: {},
-        create: {
-            email: '${ADMIN_EMAIL}',
-            password: hash,
-            role: 'ADMIN',
-        },
-    });
-
-    console.log('Admin user created');
-    await prisma.\$disconnect();
-}
-
-main().catch(console.error);
-"
-
-    if docker compose exec -T api node -e "$seed_script" 2>&1 | tee -a "$LOG_FILE"; then
-        success "Admin user created"
-    else
-        warn "Failed to create admin user. You may need to create it manually."
-    fi
-
-    log "=== Docker Installation Completed ==="
-}
-
-install_native() {
-    info "Starting Native installation..."
-    log "=== Native Installation Started ==="
+install_application() {
+    info "Starting application installation..."
+    log "=== Application Installation Started ==="
 
     cd "$INSTALL_DIR"
 
     # Install dependencies
-    info "Installing dependencies..."
+    info "Installing Node.js dependencies (this may take a few minutes)..."
     log "Running: pnpm install"
 
     if pnpm install 2>&1 | tee -a "$LOG_FILE"; then
         success "Dependencies installed"
     else
         fatal "Failed to install dependencies"
+    fi
+
+    # Generate Prisma client
+    info "Generating Prisma client..."
+    log "Running: pnpm db:generate"
+
+    if pnpm db:generate 2>&1 | tee -a "$LOG_FILE"; then
+        success "Prisma client generated"
+    else
+        fatal "Failed to generate Prisma client"
     fi
 
     # Run migrations
@@ -803,7 +627,7 @@ install_native() {
     fi
 
     # Build
-    info "Building application..."
+    info "Building application (this may take several minutes)..."
     log "Running: pnpm build"
 
     if pnpm build 2>&1 | tee -a "$LOG_FILE"; then
@@ -851,7 +675,62 @@ main().catch(console.error);
 
     cd "$INSTALL_DIR"
 
-    log "=== Native Installation Completed ==="
+    log "=== Application Installation Completed ==="
+}
+
+create_systemd_services() {
+    info "Creating systemd services..."
+
+    # API Service
+    cat > /etc/systemd/system/vpn-api.service << EOF
+[Unit]
+Description=VPN Platform API
+After=network.target postgresql.service redis.service
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=${INSTALL_DIR}/apps/api
+ExecStart=/usr/bin/node dist/main.js
+Restart=on-failure
+RestartSec=10
+Environment=NODE_ENV=production
+
+[Install]
+WantedBy=multi-user.target
+EOF
+
+    # Web Service
+    cat > /etc/systemd/system/vpn-web.service << EOF
+[Unit]
+Description=VPN Platform Web
+After=network.target vpn-api.service
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=${INSTALL_DIR}/apps/web
+ExecStart=/usr/bin/node .next/standalone/server.js
+Restart=on-failure
+RestartSec=10
+Environment=NODE_ENV=production
+Environment=PORT=3100
+
+[Install]
+WantedBy=multi-user.target
+EOF
+
+    # Reload systemd and enable services
+    systemctl daemon-reload
+    systemctl enable vpn-api vpn-web
+
+    # Start services
+    info "Starting services..."
+    systemctl start vpn-api
+    sleep 3
+    systemctl start vpn-web
+
+    success "Systemd services created and started"
 }
 
 print_summary() {
@@ -867,27 +746,18 @@ print_summary() {
     echo -e "  Admin Email: ${CYAN}${ADMIN_EMAIL}${NC}"
     echo
     echo -e "${BOLD}Installation Details:${NC}"
-    echo -e "  Type: ${CYAN}${INSTALL_TYPE}${NC}"
     echo -e "  Directory: ${CYAN}${INSTALL_DIR}${NC}"
     echo -e "  Log File: ${CYAN}${LOG_FILE}${NC}"
     echo
-
-    if [ "$INSTALL_TYPE" = "Docker (recommended)" ]; then
-        echo -e "${BOLD}Useful Commands:${NC}"
-        echo -e "  View logs: ${CYAN}cd ${INSTALL_DIR} && docker compose logs -f${NC}"
-        echo -e "  Restart:   ${CYAN}cd ${INSTALL_DIR} && docker compose restart${NC}"
-        echo -e "  Stop:      ${CYAN}cd ${INSTALL_DIR} && docker compose down${NC}"
-        echo
-    else
-        echo -e "${BOLD}Starting the Application:${NC}"
-        echo -e "  API:  ${CYAN}cd ${INSTALL_DIR}/apps/api && pnpm start:prod${NC}"
-        echo -e "  Web:  ${CYAN}cd ${INSTALL_DIR}/apps/web && pnpm start${NC}"
-        echo
-    fi
-
+    echo -e "${BOLD}Service Commands:${NC}"
+    echo -e "  Status:  ${CYAN}systemctl status vpn-api vpn-web${NC}"
+    echo -e "  Restart: ${CYAN}systemctl restart vpn-api vpn-web${NC}"
+    echo -e "  Logs:    ${CYAN}journalctl -u vpn-api -f${NC}"
+    echo
     echo -e "${YELLOW}IMPORTANT:${NC}"
     echo -e "  - Configure your reverse proxy (nginx/caddy) to point to this server"
     echo -e "  - Set up SSL certificates for ${DOMAIN}"
+    echo -e "  - API runs on port 3000, Web runs on port 3100"
     echo -e "  - Review and update SMTP settings if needed"
     echo -e "  - Configure Stripe keys in .env for payment processing"
     echo
@@ -907,7 +777,7 @@ main() {
 
     print_banner
 
-    # Collect configuration first (needed to know install type for dependencies)
+    # Collect configuration
     collect_configuration
 
     # Install system dependencies
@@ -919,6 +789,9 @@ main() {
     # Verify prerequisites after installation
     check_prerequisites
 
+    # Setup database
+    setup_database
+
     # Create .env file
     create_env_file
 
@@ -926,12 +799,11 @@ main() {
     echo -e "${BOLD}=== Starting Installation ===${NC}"
     echo
 
-    # Run appropriate installation
-    if [ "$INSTALL_TYPE" = "Docker (recommended)" ]; then
-        install_docker
-    else
-        install_native
-    fi
+    # Install application
+    install_application
+
+    # Create and start systemd services
+    create_systemd_services
 
     # Print summary
     print_summary
