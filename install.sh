@@ -17,9 +17,10 @@ NC='\033[0m' # No Color
 BOLD='\033[1m'
 
 # Defaults
-INSTALL_DIR="/opt/vpn"
+INSTALL_DIR="/opt/vpn-platform"
 LOG_FILE="${INSTALL_DIR}/install-notes.log"
 INSTALL_TYPE="docker"
+REPO_URL="https://github.com/wilson1442/vpn-platform.git"
 
 # Functions
 print_banner() {
@@ -46,22 +47,31 @@ log_masked() {
 
 info() {
     echo -e "${BLUE}[INFO]${NC} $1"
-    log "INFO: $1"
+    # Only log if log file directory exists
+    if [ -d "$(dirname "$LOG_FILE")" ]; then
+        log "INFO: $1"
+    fi
 }
 
 success() {
     echo -e "${GREEN}[SUCCESS]${NC} $1"
-    log "SUCCESS: $1"
+    if [ -d "$(dirname "$LOG_FILE")" ]; then
+        log "SUCCESS: $1"
+    fi
 }
 
 warn() {
     echo -e "${YELLOW}[WARNING]${NC} $1"
-    log "WARNING: $1"
+    if [ -d "$(dirname "$LOG_FILE")" ]; then
+        log "WARNING: $1"
+    fi
 }
 
 error() {
     echo -e "${RED}[ERROR]${NC} $1"
-    log "ERROR: $1"
+    if [ -d "$(dirname "$LOG_FILE")" ]; then
+        log "ERROR: $1"
+    fi
 }
 
 fatal() {
@@ -183,8 +193,171 @@ generate_password() {
     openssl rand -base64 24 | tr -d '\n/+=' | head -c 24
 }
 
+detect_os() {
+    if [ -f /etc/os-release ]; then
+        . /etc/os-release
+        OS=$ID
+        OS_VERSION=$VERSION_ID
+    elif [ -f /etc/redhat-release ]; then
+        OS="rhel"
+    elif [ -f /etc/debian_version ]; then
+        OS="debian"
+    else
+        OS="unknown"
+    fi
+    echo "$OS"
+}
+
+install_dependencies() {
+    info "Installing system dependencies..."
+
+    local os=$(detect_os)
+
+    case "$os" in
+        ubuntu|debian)
+            info "Detected Debian/Ubuntu system"
+            export DEBIAN_FRONTEND=noninteractive
+
+            # Update package list
+            apt-get update -qq
+
+            # Install basic dependencies
+            apt-get install -y -qq curl git openssl ca-certificates gnupg lsb-release
+
+            if [ "$INSTALL_TYPE" = "Docker (recommended)" ]; then
+                # Install Docker if not present
+                if ! command -v docker &> /dev/null; then
+                    info "Installing Docker..."
+
+                    # Add Docker's official GPG key
+                    install -m 0755 -d /etc/apt/keyrings
+                    curl -fsSL https://download.docker.com/linux/$os/gpg | gpg --dearmor -o /etc/apt/keyrings/docker.gpg
+                    chmod a+r /etc/apt/keyrings/docker.gpg
+
+                    # Add the repository
+                    echo \
+                        "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/$os \
+                        $(lsb_release -cs) stable" | tee /etc/apt/sources.list.d/docker.list > /dev/null
+
+                    apt-get update -qq
+                    apt-get install -y -qq docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+
+                    # Start and enable Docker
+                    systemctl start docker
+                    systemctl enable docker
+
+                    success "Docker installed"
+                else
+                    info "Docker already installed"
+                fi
+            else
+                # Native installation - install Node.js, pnpm, PostgreSQL client
+                if ! command -v node &> /dev/null; then
+                    info "Installing Node.js 20..."
+                    curl -fsSL https://deb.nodesource.com/setup_20.x | bash -
+                    apt-get install -y -qq nodejs
+                    success "Node.js installed"
+                fi
+
+                if ! command -v pnpm &> /dev/null; then
+                    info "Installing pnpm..."
+                    npm install -g pnpm
+                    success "pnpm installed"
+                fi
+
+                if ! command -v psql &> /dev/null; then
+                    info "Installing PostgreSQL client..."
+                    apt-get install -y -qq postgresql-client
+                    success "PostgreSQL client installed"
+                fi
+            fi
+            ;;
+
+        centos|rhel|fedora|rocky|almalinux)
+            info "Detected RHEL/CentOS/Fedora system"
+
+            # Install basic dependencies
+            if command -v dnf &> /dev/null; then
+                dnf install -y -q curl git openssl ca-certificates
+            else
+                yum install -y -q curl git openssl ca-certificates
+            fi
+
+            if [ "$INSTALL_TYPE" = "Docker (recommended)" ]; then
+                if ! command -v docker &> /dev/null; then
+                    info "Installing Docker..."
+
+                    if command -v dnf &> /dev/null; then
+                        dnf config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
+                        dnf install -y -q docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+                    else
+                        yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
+                        yum install -y -q docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+                    fi
+
+                    systemctl start docker
+                    systemctl enable docker
+
+                    success "Docker installed"
+                else
+                    info "Docker already installed"
+                fi
+            else
+                # Native installation
+                if ! command -v node &> /dev/null; then
+                    info "Installing Node.js 20..."
+                    curl -fsSL https://rpm.nodesource.com/setup_20.x | bash -
+                    if command -v dnf &> /dev/null; then
+                        dnf install -y -q nodejs
+                    else
+                        yum install -y -q nodejs
+                    fi
+                    success "Node.js installed"
+                fi
+
+                if ! command -v pnpm &> /dev/null; then
+                    info "Installing pnpm..."
+                    npm install -g pnpm
+                    success "pnpm installed"
+                fi
+
+                if ! command -v psql &> /dev/null; then
+                    info "Installing PostgreSQL client..."
+                    if command -v dnf &> /dev/null; then
+                        dnf install -y -q postgresql
+                    else
+                        yum install -y -q postgresql
+                    fi
+                    success "PostgreSQL client installed"
+                fi
+            fi
+            ;;
+
+        *)
+            warn "Unknown OS: $os. Please install dependencies manually:"
+            echo "  - curl"
+            echo "  - git"
+            echo "  - openssl"
+            if [ "$INSTALL_TYPE" = "Docker (recommended)" ]; then
+                echo "  - docker"
+                echo "  - docker-compose"
+            else
+                echo "  - nodejs (v20+)"
+                echo "  - pnpm"
+                echo "  - postgresql-client"
+            fi
+
+            if ! prompt_confirm "Continue anyway?" "n"; then
+                exit 1
+            fi
+            ;;
+    esac
+
+    success "System dependencies installed"
+}
+
 check_prerequisites() {
-    info "Checking prerequisites..."
+    info "Verifying prerequisites..."
 
     local missing=()
 
@@ -234,16 +407,49 @@ check_prerequisites() {
     fi
 
     if [ ${#missing[@]} -gt 0 ]; then
-        error "Missing prerequisites:"
+        error "Missing prerequisites after installation:"
         for item in "${missing[@]}"; do
             echo -e "  ${RED}- $item${NC}"
         done
         echo
-        echo -e "${YELLOW}Please install the missing prerequisites and run this script again.${NC}"
-        exit 1
+        fatal "Please install the missing prerequisites and run this script again."
     fi
 
-    success "All prerequisites satisfied"
+    success "All prerequisites verified"
+}
+
+clone_repository() {
+    info "Setting up repository..."
+
+    if [ -d "$INSTALL_DIR" ] && [ -f "${INSTALL_DIR}/package.json" ]; then
+        info "Repository already exists at ${INSTALL_DIR}"
+
+        cd "$INSTALL_DIR"
+
+        if prompt_confirm "Update to latest version?" "y"; then
+            info "Pulling latest changes..."
+            git fetch origin
+            git pull origin main
+            success "Repository updated"
+        fi
+    else
+        info "Cloning repository to ${INSTALL_DIR}..."
+
+        # Create parent directory if needed
+        mkdir -p "$(dirname "$INSTALL_DIR")"
+
+        # Clone the repository
+        git clone "$REPO_URL" "$INSTALL_DIR"
+
+        success "Repository cloned"
+    fi
+
+    cd "$INSTALL_DIR"
+
+    # Initialize log file now that directory exists
+    echo "=== VPN Platform Installation Log ===" > "$LOG_FILE"
+    log "Installation started"
+    log "Working directory: $INSTALL_DIR"
 }
 
 collect_configuration() {
@@ -655,14 +861,14 @@ print_summary() {
 
     if [ "$INSTALL_TYPE" = "Docker (recommended)" ]; then
         echo -e "${BOLD}Useful Commands:${NC}"
-        echo -e "  View logs: ${CYAN}docker compose logs -f${NC}"
-        echo -e "  Restart:   ${CYAN}docker compose restart${NC}"
-        echo -e "  Stop:      ${CYAN}docker compose down${NC}"
+        echo -e "  View logs: ${CYAN}cd ${INSTALL_DIR} && docker compose logs -f${NC}"
+        echo -e "  Restart:   ${CYAN}cd ${INSTALL_DIR} && docker compose restart${NC}"
+        echo -e "  Stop:      ${CYAN}cd ${INSTALL_DIR} && docker compose down${NC}"
         echo
     else
         echo -e "${BOLD}Starting the Application:${NC}"
-        echo -e "  API:  ${CYAN}cd apps/api && pnpm start:prod${NC}"
-        echo -e "  Web:  ${CYAN}cd apps/web && pnpm start${NC}"
+        echo -e "  API:  ${CYAN}cd ${INSTALL_DIR}/apps/api && pnpm start:prod${NC}"
+        echo -e "  Web:  ${CYAN}cd ${INSTALL_DIR}/apps/web && pnpm start${NC}"
         echo
     fi
 
@@ -681,35 +887,23 @@ print_summary() {
 
 # Main execution
 main() {
-    print_banner
-
-    # Initialize log file
-    mkdir -p "$(dirname "$LOG_FILE")"
-    echo "=== VPN Platform Installation Log ===" > "$LOG_FILE"
-    log "Installation started"
-    log "Working directory: $INSTALL_DIR"
-
-    # Check if we're in the right directory
-    if [ ! -f "${INSTALL_DIR}/package.json" ]; then
-        # Try to detect if we're being run from the repo
-        SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-        if [ -f "${SCRIPT_DIR}/package.json" ]; then
-            INSTALL_DIR="$SCRIPT_DIR"
-            LOG_FILE="${INSTALL_DIR}/install-notes.log"
-            echo "=== VPN Platform Installation Log ===" > "$LOG_FILE"
-            log "Installation started"
-            log "Working directory: $INSTALL_DIR"
-        else
-            fatal "Could not find VPN Platform installation. Please run this script from the project directory."
-        fi
+    # Check if running as root
+    if [ "$EUID" -ne 0 ]; then
+        fatal "This script must be run as root. Please use: sudo bash install.sh"
     fi
 
-    cd "$INSTALL_DIR"
+    print_banner
 
-    # Collect configuration
+    # Collect configuration first (needed to know install type for dependencies)
     collect_configuration
 
-    # Check prerequisites based on installation type
+    # Install system dependencies
+    install_dependencies
+
+    # Clone or update repository
+    clone_repository
+
+    # Verify prerequisites after installation
     check_prerequisites
 
     # Create .env file
