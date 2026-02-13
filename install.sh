@@ -430,25 +430,21 @@ EOF
 }
 
 get_server_ip() {
-    # Try to get public IP and validate it looks like an IP address
-    local ip=""
-    local response=""
+    # Get local IP - most reliable for private network installations
+    local ip=$(hostname -I | awk '{print $1}')
 
-    response=$(curl -s --max-time 5 ifconfig.me 2>/dev/null)
-    if echo "$response" | grep -qE '^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$'; then
-        ip="$response"
-    fi
-
+    # Try to get public IP if local IP detection fails
     if [ -z "$ip" ]; then
-        response=$(curl -s --max-time 5 icanhazip.com 2>/dev/null)
-        if echo "$response" | grep -qE '^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$'; then
-            ip="$response"
+        ip=$(curl -s --max-time 3 ifconfig.me 2>/dev/null | tr -d '[:space:]')
+        # Validate it's an IP (simple check for numbers and dots only)
+        if ! echo "$ip" | grep -qE '^[0-9.]+$'; then
+            ip=""
         fi
     fi
 
+    # Final fallback
     if [ -z "$ip" ]; then
-        # Fallback to local IP
-        ip=$(hostname -I | awk '{print $1}')
+        ip="localhost"
     fi
 
     echo "$ip"
