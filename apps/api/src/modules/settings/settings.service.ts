@@ -20,6 +20,17 @@ export class SettingsService {
     }
   }
 
+  async getChangelog(): Promise<{ content: string }> {
+    const changelogFile = path.join(this.repoDir, 'CHANGELOG.md');
+    try {
+      const content = await fs.readFile(changelogFile, 'utf-8');
+      return { content };
+    } catch {
+      this.logger.warn('CHANGELOG.md not found');
+      return { content: '# Changelog\n\nNo changelog available.' };
+    }
+  }
+
   async getVersion(): Promise<{ version: string; commit: string }> {
     const versionFile = path.join(this.repoDir, 'VERSION');
     let version = '0.0.0';

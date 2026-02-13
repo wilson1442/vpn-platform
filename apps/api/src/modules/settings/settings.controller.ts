@@ -37,6 +37,12 @@ export class SettingsController {
     return this.settings.getVersion();
   }
 
+  @Get('changelog')
+  @Public()
+  getChangelog() {
+    return this.settings.getChangelog();
+  }
+
   @Patch()
   @Roles(Role.ADMIN)
   updateSettings(@Body() body: { siteName?: string; licenseKey?: string; githubRepo?: string }) {

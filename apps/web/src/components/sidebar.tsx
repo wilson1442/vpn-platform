@@ -214,9 +214,12 @@ export function Sidebar() {
         </nav>
         <div className="border-t p-4">
           {versionInfo && (
-            <p className="mb-1 text-xs text-muted-foreground/60">
-              v{versionInfo.version}
-            </p>
+            <div className="mb-1 text-xs text-muted-foreground/60">
+              <Link href="/changelog" className="hover:text-foreground transition-colors underline">
+                Changelog
+              </Link>
+              <p>v{versionInfo.version}</p>
+            </div>
           )}
           <p className="mb-2 text-xs text-muted-foreground">{user?.email}</p>
           <Button variant="outline" size="sm" className="w-full" onClick={logout}>

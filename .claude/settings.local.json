@@ -23,7 +23,12 @@
       "Bash(python3 -c \"\nimport urllib.request, json\ndata = json.dumps\\({''username'': ''admin@vpn-platform.local'', ''password'': ''admin123!@#''}\\).encode\\(\\)\nreq = urllib.request.Request\\(''http://localhost:3000/auth/login'', data=data, headers={''Content-Type'': ''application/json''}\\)\nresp = urllib.request.urlopen\\(req\\)\ntokens = json.loads\\(resp.read\\(\\)\\)\ntoken = tokens[''accessToken'']\n\n# Now create a package\ndata2 = json.dumps\\({''name'': ''Test Package'', ''duration'': ''1m'', ''description'': ''test'', ''maxConnections'': 2, ''maxDevices'': 3, ''priceMonthly'': 999, ''creditCost'': 0}\\).encode\\(\\)\nreq2 = urllib.request.Request\\(''http://localhost:3000/packages'', data=data2, headers={''Content-Type'': ''application/json'', ''Authorization'': f''Bearer {token}''}\\)\nresp2 = urllib.request.urlopen\\(req2\\)\nprint\\(resp2.read\\(\\).decode\\(\\)\\)\n\")",
       "Bash(python3:*)",
       "Bash(nginx -t:*)",
-      "Bash(nginx -s reload:*)"
+      "Bash(nginx -s reload:*)",
+      "Bash(systemctl status:*)",
+      "Bash(node -e:*)",
+      "Bash(sshpass:*)",
+      "Bash(systemctl restart:*)",
+      "Bash(pnpm db:seed:*)"
     ]
   }
 }

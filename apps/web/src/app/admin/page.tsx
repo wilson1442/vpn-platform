@@ -37,12 +37,12 @@ export default function AdminDashboard() {
       {/* Row 1: Stat cards */}
       <div className="mb-6 grid gap-4 md:grid-cols-2 lg:grid-cols-5">
         {statCards.map((stat) => (
-          <Card key={stat.label}>
+          <Card key={stat.label} className="bg-zinc-900 border-zinc-800">
             <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">{stat.label}</CardTitle>
+              <CardTitle className="text-sm font-medium text-zinc-400">{stat.label}</CardTitle>
             </CardHeader>
             <CardContent>
-              <p className={`text-2xl font-bold ${stat.highlight ? 'text-green-500' : ''}`}>
+              <p className={`text-2xl font-bold ${stat.highlight ? 'text-green-400' : 'text-zinc-100'}`}>
                 {stat.value}
               </p>
             </CardContent>
