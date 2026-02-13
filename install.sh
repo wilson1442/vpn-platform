@@ -430,8 +430,21 @@ EOF
 }
 
 get_server_ip() {
-    # Try to get public IP
-    local ip=$(curl -s --max-time 5 ifconfig.me 2>/dev/null || curl -s --max-time 5 icanhazip.com 2>/dev/null || echo "")
+    # Try to get public IP and validate it looks like an IP address
+    local ip=""
+    local response=""
+
+    response=$(curl -s --max-time 5 ifconfig.me 2>/dev/null)
+    if echo "$response" | grep -qE '^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$'; then
+        ip="$response"
+    fi
+
+    if [ -z "$ip" ]; then
+        response=$(curl -s --max-time 5 icanhazip.com 2>/dev/null)
+        if echo "$response" | grep -qE '^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$'; then
+            ip="$response"
+        fi
+    fi
 
     if [ -z "$ip" ]; then
         # Fallback to local IP
