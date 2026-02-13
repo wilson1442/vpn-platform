@@ -13,6 +13,7 @@ import { AuditModule } from './modules/audit/audit.module';
 import { ConfigDeliveryModule } from './modules/config-delivery/config-delivery.module';
 import { SettingsModule } from './modules/settings/settings.module';
 import { StatsModule } from './modules/stats/stats.module';
+import { ProfileModule } from './modules/profile/profile.module';
 
 @Module({
   imports: [
@@ -35,6 +36,7 @@ import { StatsModule } from './modules/stats/stats.module';
     ConfigDeliveryModule,
     SettingsModule,
     StatsModule,
+    ProfileModule,
   ],
 })
 export class AppModule {}

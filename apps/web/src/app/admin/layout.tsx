@@ -6,6 +6,7 @@ import { useAuth } from '@/lib/auth-context';
 import { MobileNavProvider } from '@/lib/mobile-nav-context';
 import { Sidebar } from '@/components/sidebar';
 import { MobileHeader } from '@/components/mobile-header';
+import { DesktopHeader } from '@/components/desktop-header';
 import { ImpersonationBanner } from '@/components/impersonation-banner';
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
@@ -30,6 +31,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           <Sidebar />
           <div className="flex flex-1 flex-col overflow-hidden">
             <MobileHeader />
+            <DesktopHeader />
             <main className="flex-1 overflow-auto p-4 md:p-6">{children}</main>
           </div>
         </div>

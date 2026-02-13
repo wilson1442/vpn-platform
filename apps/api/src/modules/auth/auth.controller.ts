@@ -35,7 +35,7 @@ export class AuthController {
 
   @Get('me')
   async me(@CurrentUser() user: any) {
-    const dbUser = await this.prisma.user.findUnique({ where: { id: user.sub }, select: { username: true, expiresAt: true } });
+    const dbUser = await this.prisma.user.findUnique({ where: { id: user.sub }, select: { username: true, expiresAt: true, avatarPath: true } });
     return {
       id: user.sub,
       username: dbUser?.username ?? user.username,
@@ -43,6 +43,7 @@ export class AuthController {
       role: user.role,
       resellerId: user.resellerId,
       expiresAt: dbUser?.expiresAt ?? null,
+      avatarPath: dbUser?.avatarPath ?? null,
       impersonatedBy: user.impersonatedBy,
       impersonatedByEmail: user.impersonatedByEmail,
     };

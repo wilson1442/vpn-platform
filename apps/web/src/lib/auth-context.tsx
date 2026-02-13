@@ -11,6 +11,7 @@ interface User {
   role: 'ADMIN' | 'RESELLER' | 'USER';
   resellerId?: string;
   expiresAt?: string;
+  avatarPath?: string | null;
   impersonatedBy?: string;
   impersonatedByEmail?: string;
 }

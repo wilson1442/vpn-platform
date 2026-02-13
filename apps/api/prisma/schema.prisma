@@ -34,6 +34,7 @@ model User {
   role           Role         @default(USER)
   resellerId     String?
   entitlementId  String?      @unique
+  avatarPath     String?
   isActive       Boolean      @default(true)
   expiresAt      DateTime?
   lastLoginAt    DateTime?

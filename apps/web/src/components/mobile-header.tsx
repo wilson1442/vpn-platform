@@ -1,8 +1,11 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import Link from 'next/link';
 import { useMobileNav } from '@/lib/mobile-nav-context';
+import { useAuth } from '@/lib/auth-context';
 import { Button } from './ui/button';
+import { UserAvatar } from './user-avatar';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
 
@@ -13,7 +16,10 @@ interface PublicSettings {
 
 export function MobileHeader() {
   const { toggle } = useMobileNav();
+  const { user } = useAuth();
   const [branding, setBranding] = useState<PublicSettings>({ siteName: 'VPN Platform', logoPath: null });
+
+  const rolePrefix = user?.role === 'ADMIN' ? '/admin' : user?.role === 'RESELLER' ? '/reseller' : '/user';
 
   useEffect(() => {
     fetch(`${API_URL}/settings/public`)
@@ -43,7 +49,7 @@ export function MobileHeader() {
           <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
         </svg>
       </Button>
-      <div className="flex items-center gap-2">
+      <div className="flex flex-1 items-center gap-2">
         {branding.logoPath && (
           <img
             src={`${API_URL}/settings/logo`}
@@ -53,6 +59,16 @@ export function MobileHeader() {
         )}
         <span className="font-semibold">{branding.siteName}</span>
       </div>
+      {user && (
+        <Link href={`${rolePrefix}/profile`}>
+          <UserAvatar
+            userId={user.id}
+            avatarPath={user.avatarPath}
+            username={user.username}
+            size="sm"
+          />
+        </Link>
+      )}
     </header>
   );
 }
