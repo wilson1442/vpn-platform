@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { api } from '@/lib/api';
+import { api, apiRaw } from '@/lib/api';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -12,7 +12,7 @@ import {
 } from '@/components/ui/dialog';
 import { cn } from '@/lib/utils';
 
-type WizardStep = 'check' | 'download' | 'install';
+type WizardStep = 'check' | 'download' | 'backup' | 'install';
 type StepStatus = 'idle' | 'loading' | 'done' | 'error';
 
 interface UpdateInfo {
@@ -32,6 +32,7 @@ interface UpdateWizardProps {
 const steps: { id: WizardStep; label: string }[] = [
   { id: 'check', label: 'Check' },
   { id: 'download', label: 'Download' },
+  { id: 'backup', label: 'Backup' },
   { id: 'install', label: 'Install' },
 ];
 
@@ -40,6 +41,7 @@ export function UpdateWizard({ open, onOpenChange }: UpdateWizardProps) {
   const [stepStatus, setStepStatus] = useState<Record<WizardStep, StepStatus>>({
     check: 'idle',
     download: 'idle',
+    backup: 'idle',
     install: 'idle',
   });
   const [updateInfo, setUpdateInfo] = useState<UpdateInfo | null>(null);
@@ -49,7 +51,7 @@ export function UpdateWizard({ open, onOpenChange }: UpdateWizardProps) {
 
   const resetWizard = () => {
     setCurrentStep('check');
-    setStepStatus({ check: 'idle', download: 'idle', install: 'idle' });
+    setStepStatus({ check: 'idle', download: 'idle', backup: 'idle', install: 'idle' });
     setUpdateInfo(null);
     setInstallOutput(null);
     setNewVersion(null);
@@ -88,13 +90,36 @@ export function UpdateWizard({ open, onOpenChange }: UpdateWizardProps) {
       });
       if (result.success) {
         setStepStatus((prev) => ({ ...prev, download: 'done' }));
-        setCurrentStep('install');
+        setCurrentStep('backup');
       } else {
         throw new Error(result.message);
       }
     } catch (err: any) {
       setError(err.message || 'Failed to download update');
       setStepStatus((prev) => ({ ...prev, download: 'error' }));
+    }
+  };
+
+  const handleBackup = async () => {
+    setStepStatus((prev) => ({ ...prev, backup: 'loading' }));
+    setError(null);
+    try {
+      const resp = await apiRaw('/settings/backup', { method: 'POST' });
+      const blob = await resp.blob();
+      const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `backup-${timestamp}.sql`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      setStepStatus((prev) => ({ ...prev, backup: 'done' }));
+      setCurrentStep('install');
+    } catch (err: any) {
+      setError(err.message || 'Failed to create backup');
+      setStepStatus((prev) => ({ ...prev, backup: 'error' }));
     }
   };
 
@@ -318,6 +343,46 @@ export function UpdateWizard({ open, onOpenChange }: UpdateWizardProps) {
                 <div className="text-center">
                   <Button onClick={handleDownload} variant="outline">
                     Retry Download
+                  </Button>
+                </div>
+              )}
+            </div>
+          )}
+
+          {currentStep === 'backup' && (
+            <div className="space-y-4">
+              {stepStatus.backup === 'idle' && (
+                <div className="text-center">
+                  <div className="mb-4 rounded-md border border-yellow-200 bg-yellow-50 p-3 text-sm text-yellow-800 dark:border-yellow-800 dark:bg-yellow-950/20 dark:text-yellow-400">
+                    <strong>Recommended:</strong> Create a database backup before installing the update.
+                    This allows you to restore your data if anything goes wrong.
+                  </div>
+                  <Button onClick={handleBackup}>Create Backup &amp; Download</Button>
+                </div>
+              )}
+
+              {stepStatus.backup === 'loading' && (
+                <div className="flex flex-col items-center gap-2 py-8">
+                  <svg className="h-8 w-8 animate-spin text-primary" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                  </svg>
+                  <p className="text-muted-foreground">Creating database backup...</p>
+                </div>
+              )}
+
+              {stepStatus.backup === 'done' && (
+                <div className="rounded-md border border-green-200 bg-green-50 p-4 text-center dark:border-green-800 dark:bg-green-950/20">
+                  <p className="font-medium text-green-800 dark:text-green-400">
+                    Backup created and downloaded successfully!
+                  </p>
+                </div>
+              )}
+
+              {stepStatus.backup === 'error' && (
+                <div className="text-center">
+                  <Button onClick={handleBackup} variant="outline">
+                    Retry Backup
                   </Button>
                 </div>
               )}

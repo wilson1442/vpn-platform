@@ -156,7 +156,7 @@ export class SettingsService {
 
   async downloadUpdate(): Promise<{ success: boolean; message: string }> {
     try {
-      await execAsync('git fetch origin --all', { cwd: this.repoDir });
+      await execAsync('git fetch origin', { cwd: this.repoDir });
       return { success: true, message: 'Update downloaded successfully' };
     } catch (error: any) {
       return { success: false, message: error.message || 'Failed to download update' };
