@@ -341,11 +341,11 @@ install_application() {
     # Create a temporary seed script
     cat > "${INSTALL_DIR}/apps/api/seed-admin.js" << 'SEEDEOF'
 const { PrismaClient } = require('@prisma/client');
-const bcrypt = require('bcrypt');
+const argon2 = require('argon2');
 
 async function main() {
     const prisma = new PrismaClient();
-    const hash = await bcrypt.hash(process.env.ADMIN_PASS, 10);
+    const hash = await argon2.hash(process.env.ADMIN_PASS);
 
     await prisma.user.upsert({
         where: { email: process.env.ADMIN_EMAIL },
