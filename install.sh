@@ -338,9 +338,10 @@ install_application() {
     # Create admin user
     info "Creating admin user..."
 
-    cd "${INSTALL_DIR}/apps/api"
+    cd "${INSTALL_DIR}"
 
-    node -e "
+    # Use pnpm to run in the api workspace context
+    pnpm --filter api exec node -e "
 const { PrismaClient } = require('@prisma/client');
 const bcrypt = require('bcrypt');
 
@@ -365,8 +366,6 @@ main().catch(console.error);
 " 2>/dev/null
 
     success "Admin user created"
-
-    cd "$INSTALL_DIR"
 }
 
 create_systemd_services() {
