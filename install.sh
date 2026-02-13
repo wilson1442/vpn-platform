@@ -7,14 +7,14 @@
 
 set -e
 
-# If script is being piped (stdin is not a terminal), download and re-execute
+# If script is being piped (stdin is not a terminal), download and re-execute with TTY
 if [ ! -t 0 ]; then
     SCRIPT_URL="https://raw.githubusercontent.com/wilson1442/vpn-platform/main/install.sh"
     TEMP_SCRIPT=$(mktemp)
     curl -fsSL "$SCRIPT_URL" -o "$TEMP_SCRIPT"
     chmod +x "$TEMP_SCRIPT"
-    exec bash "$TEMP_SCRIPT" "$@"
-    exit $?
+    # Re-execute with stdin from terminal
+    exec bash "$TEMP_SCRIPT" "$@" < /dev/tty
 fi
 
 # Colors for output
