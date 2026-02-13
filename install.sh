@@ -35,7 +35,10 @@ print_banner() {
 
 log() {
     local timestamp=$(date '+%Y-%m-%d %H:%M:%S')
-    echo "[$timestamp] $1" >> "$LOG_FILE"
+    # Only log if the log file directory exists
+    if [ -d "$(dirname "$LOG_FILE")" ]; then
+        echo "[$timestamp] $1" >> "$LOG_FILE"
+    fi
 }
 
 log_masked() {
