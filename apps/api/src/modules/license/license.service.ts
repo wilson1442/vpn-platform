@@ -23,6 +23,9 @@ export class LicenseService implements OnModuleInit {
   private readonly logger = new Logger(LicenseService.name);
   private lf: LicenseForgeType | null = null;
   private initError: string | null = null;
+  private licenseKey: string | null = null;
+  private customerEmail: string | null = null;
+  private productSlug: string | null = null;
 
   constructor(private prisma: PrismaService) {}
 
@@ -34,6 +37,9 @@ export class LicenseService implements OnModuleInit {
   }
 
   private async initialize(licenseKey: string) {
+    this.licenseKey = licenseKey;
+    let validationError: string | null = null;
+
     try {
       const { LicenseForge } = await loadSdk();
       this.lf = new LicenseForge({
@@ -45,6 +51,7 @@ export class LicenseService implements OnModuleInit {
         heartbeatInterval: HEARTBEAT_INTERVAL,
         offlineGracePeriod: OFFLINE_GRACE_PERIOD,
         onValidationFailed: (reason) => {
+          validationError = reason;
           this.logger.warn(`License validation failed: ${reason}`);
         },
         onGracePeriod: (daysLeft) => {
@@ -52,12 +59,42 @@ export class LicenseService implements OnModuleInit {
         },
       });
       await this.lf.initialize();
-      this.initError = null;
-      this.logger.log('License initialized successfully');
+
+      // The SDK catches validation errors internally and doesn't throw.
+      // Check if the license is actually valid after initialization.
+      if (!this.lf.isValid()) {
+        this.initError = validationError || 'License validation failed';
+        this.logger.error(`License invalid after init: ${this.initError}`);
+      } else {
+        this.initError = null;
+        this.logger.log('License initialized successfully');
+        // Fetch extended info (customer email, etc.) from the server
+        await this.fetchLicenseDetails(licenseKey);
+      }
     } catch (err: any) {
       this.initError = err.message || 'Failed to initialize license';
       this.logger.error(`License initialization failed: ${this.initError}`);
       this.lf = null;
+    }
+  }
+
+  private async fetchLicenseDetails(licenseKey: string) {
+    try {
+      const resp = await fetch(`${LICENSE_SERVER_URL}/api/v1/license/status`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ licenseKey, productSlug: 'vpn-pro' }),
+        signal: AbortSignal.timeout(5000),
+      });
+      if (resp.ok) {
+        const json = await resp.json() as { success?: boolean; data?: { customerEmail?: string; product?: string } };
+        if (json.success && json.data) {
+          this.customerEmail = json.data.customerEmail || null;
+          this.productSlug = json.data.product || null;
+        }
+      }
+    } catch {
+      // Non-critical — status page will just not show email
     }
   }
 
@@ -70,10 +107,14 @@ export class LicenseService implements OnModuleInit {
       }
       this.lf = null;
       this.initError = null;
+      this.customerEmail = null;
+      this.productSlug = null;
     }
 
     if (licenseKey) {
       await this.initialize(licenseKey);
+    } else {
+      this.licenseKey = null;
     }
 
     return this.getStatus();
@@ -95,6 +136,8 @@ export class LicenseService implements OnModuleInit {
         tier: null,
         expiresAt: null,
         features: [] as string[],
+        customerEmail: null as string | null,
+        product: null as string | null,
         initError: this.initError,
       };
     }
@@ -106,6 +149,8 @@ export class LicenseService implements OnModuleInit {
       tier: info.tier,
       expiresAt: info.expiresAt,
       features: info.features,
+      customerEmail: this.customerEmail,
+      product: this.productSlug,
       initError: this.initError,
     };
   }

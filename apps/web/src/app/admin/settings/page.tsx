@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { api, apiRaw, apiUpload } from '@/lib/api';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -23,7 +23,43 @@ interface LicenseStatus {
   tier: string | null;
   expiresAt: string | null;
   features: string[];
+  customerEmail: string | null;
+  product: string | null;
   initError: string | null;
+}
+
+function StatusBadge({ status }: { status: string }) {
+  const config: Record<string, { label: string; className: string }> = {
+    active: {
+      label: 'Active',
+      className: 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400',
+    },
+    grace_period: {
+      label: 'Grace Period',
+      className: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400',
+    },
+    expired: {
+      label: 'Expired',
+      className: 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400',
+    },
+    unknown: {
+      label: 'Invalid',
+      className: 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400',
+    },
+  };
+  const c = config[status] || { label: 'No License', className: 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-400' };
+
+  return (
+    <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${c.className}`}>
+      {c.label}
+    </span>
+  );
+}
+
+function StatusDot({ valid }: { valid: boolean }) {
+  return (
+    <span className={`inline-block h-2 w-2 rounded-full ${valid ? 'bg-green-500' : 'bg-red-500'}`} />
+  );
 }
 
 export default function SettingsPage() {
@@ -41,13 +77,15 @@ export default function SettingsPage() {
   const [message, setMessage] = useState<{ text: string; type: 'success' | 'error' } | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [licenseStatus, setLicenseStatus] = useState<LicenseStatus | null>(null);
+  const [activatingLicense, setActivatingLicense] = useState(false);
 
-  const loadLicenseStatus = () =>
+  const loadLicenseStatus = useCallback(() =>
     api<LicenseStatus>('/license/status')
       .then((data) => setLicenseStatus(data))
-      .catch(() => {});
+      .catch(() => {}),
+  []);
 
-  const load = () => {
+  const load = useCallback(() => {
     api<Settings>('/settings')
       .then((data) => {
         setSettings(data);
@@ -63,11 +101,17 @@ export default function SettingsPage() {
         setLoadError(err.message || 'Failed to load settings');
       });
     loadLicenseStatus();
-  };
+  }, [loadLicenseStatus]);
 
   useEffect(() => {
     load();
-  }, []);
+  }, [load]);
+
+  // Poll license status every 30 seconds for real-time updates
+  useEffect(() => {
+    const interval = setInterval(loadLicenseStatus, 30000);
+    return () => clearInterval(interval);
+  }, [loadLicenseStatus]);
 
   const showMessage = (text: string, type: 'success' | 'error') => {
     setMessage({ text, type });
@@ -79,15 +123,32 @@ export default function SettingsPage() {
     try {
       await api('/settings', {
         method: 'PATCH',
-        body: JSON.stringify({ siteName, licenseKey, githubRepo }),
+        body: JSON.stringify({ siteName, githubRepo }),
       });
       showMessage('Settings saved', 'success');
       load();
-      refreshLicense();
     } catch (err: any) {
       showMessage(err.message || 'Failed to save settings', 'error');
     } finally {
       setSaving(false);
+    }
+  };
+
+  const handleActivateLicense = async () => {
+    if (!licenseKey.trim()) return;
+    setActivatingLicense(true);
+    try {
+      await api('/settings', {
+        method: 'PATCH',
+        body: JSON.stringify({ licenseKey: licenseKey.trim() }),
+      });
+      await loadLicenseStatus();
+      refreshLicense();
+      showMessage('License key saved', 'success');
+    } catch (err: any) {
+      showMessage(err.message || 'Failed to save license key', 'error');
+    } finally {
+      setActivatingLicense(false);
     }
   };
 
@@ -189,51 +250,57 @@ export default function SettingsPage() {
 
         <Card>
           <CardHeader>
-            <CardTitle>License</CardTitle>
+            <div className="flex items-center justify-between">
+              <CardTitle className="flex items-center gap-2">
+                License
+                {licenseStatus && <StatusDot valid={licenseStatus.valid} />}
+              </CardTitle>
+              <Button variant="ghost" size="sm" onClick={loadLicenseStatus} className="text-xs text-muted-foreground">
+                Refresh
+              </Button>
+            </div>
           </CardHeader>
           <CardContent className="space-y-4">
             {licenseStatus && (
-              <div className="space-y-3">
-                <div className="flex items-center gap-2">
-                  <span className="text-sm font-medium">Status:</span>
-                  <span
-                    className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${
-                      licenseStatus.status === 'active'
-                        ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400'
-                        : licenseStatus.status === 'grace_period'
-                          ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400'
-                          : licenseStatus.status === 'expired'
-                            ? 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400'
-                            : 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-400'
-                    }`}
-                  >
-                    {licenseStatus.status === 'active'
-                      ? 'Active'
-                      : licenseStatus.status === 'grace_period'
-                        ? 'Grace Period'
-                        : licenseStatus.status === 'expired'
-                          ? 'Expired'
-                          : 'No License'}
-                  </span>
+              <div className="rounded-lg border p-4 space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-medium">Status</span>
+                  <StatusBadge status={licenseStatus.status} />
                 </div>
+                {licenseStatus.product && (
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-medium">Product</span>
+                    <span className="text-sm text-muted-foreground">{licenseStatus.product}</span>
+                  </div>
+                )}
                 {licenseStatus.tier && (
-                  <div className="flex items-center gap-2">
-                    <span className="text-sm font-medium">Tier:</span>
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-medium">Tier</span>
                     <span className="text-sm text-muted-foreground capitalize">{licenseStatus.tier}</span>
                   </div>
                 )}
+                {licenseStatus.customerEmail && (
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-medium">Customer</span>
+                    <span className="text-sm text-muted-foreground">{licenseStatus.customerEmail}</span>
+                  </div>
+                )}
                 {licenseStatus.expiresAt && (
-                  <div className="flex items-center gap-2">
-                    <span className="text-sm font-medium">Expires:</span>
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-medium">Expires</span>
                     <span className="text-sm text-muted-foreground">
-                      {new Date(licenseStatus.expiresAt).toLocaleDateString()}
+                      {new Date(licenseStatus.expiresAt).toLocaleDateString(undefined, {
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric',
+                      })}
                     </span>
                   </div>
                 )}
                 {licenseStatus.features.length > 0 && (
                   <div>
-                    <span className="text-sm font-medium">Features:</span>
-                    <div className="mt-1 flex flex-wrap gap-1">
+                    <span className="text-sm font-medium">Features</span>
+                    <div className="mt-1.5 flex flex-wrap gap-1.5">
                       {licenseStatus.features.map((f) => (
                         <span
                           key={f}
@@ -254,12 +321,18 @@ export default function SettingsPage() {
             )}
             <div>
               <label className="mb-1 block text-sm font-medium">License Key</label>
-              <Input
-                value={licenseKey}
-                onChange={(e) => setLicenseKey(e.target.value)}
-                placeholder="Enter license key"
-                type="password"
-              />
+              <div className="flex gap-2">
+                <Input
+                  value={licenseKey}
+                  onChange={(e) => setLicenseKey(e.target.value)}
+                  placeholder="Enter license key"
+                  type="password"
+                  onKeyDown={(e) => { if (e.key === 'Enter') handleActivateLicense(); }}
+                />
+                <Button onClick={handleActivateLicense} disabled={activatingLicense || !licenseKey.trim()}>
+                  {activatingLicense ? 'Activating...' : 'Activate'}
+                </Button>
+              </div>
             </div>
           </CardContent>
         </Card>
