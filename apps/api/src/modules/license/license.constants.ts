@@ -12,8 +12,8 @@ uwiRYGjTtNFAaNAvInyyyM+ygO6GJEIvqdjG9akf8Gr6XXociivFvo53cANmp8zg
 hQIDAQAB
 -----END PUBLIC KEY-----`;
 
-export const VALIDATE_INTERVAL = 86400000; // 24 hours
-export const HEARTBEAT_INTERVAL = 86400000; // 24 hours
+export const VALIDATE_INTERVAL = 21600000; // 6 hours
+export const HEARTBEAT_INTERVAL = 21600000; // 6 hours
 export const OFFLINE_GRACE_PERIOD = 72; // hours
 
 export const REQUIRE_FEATURE_KEY = 'requireFeature';
