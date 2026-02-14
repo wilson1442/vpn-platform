@@ -137,7 +137,14 @@ export class LicenseService implements OnModuleInit {
   }
 
   hasFeature(slug: string): boolean {
-    return this.lf?.hasFeature(slug) ?? false;
+    if (!this.lf?.isValid()) return false;
+    // Don't use SDK's hasFeature() — it crashes when features is an object (not array).
+    // Check manually using getLicenseInfo().
+    const info = this.lf.getLicenseInfo();
+    const features = info.features;
+    if (Array.isArray(features)) return features.includes(slug);
+    if (features && typeof features === 'object') return slug in features;
+    return false;
   }
 
   getStatus() {

@@ -27,38 +27,65 @@ interface LicenseStatus {
   initError: string | null;
 }
 
-function StatusBadge({ status }: { status: string }) {
-  const config: Record<string, { label: string; className: string }> = {
-    active: {
-      label: 'Active',
-      className: 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400',
-    },
-    grace_period: {
-      label: 'Grace Period',
-      className: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400',
-    },
-    expired: {
-      label: 'Expired',
-      className: 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400',
-    },
-    unknown: {
-      label: 'Invalid',
-      className: 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400',
-    },
-  };
-  const c = config[status] || { label: 'No License', className: 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-400' };
-
+function LicenseStatusIcon({ status }: { status: string }) {
+  if (status === 'active') {
+    return (
+      <div className="flex h-12 w-12 items-center justify-center rounded-full bg-green-500/10">
+        <svg className="h-6 w-6 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+          <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+        </svg>
+      </div>
+    );
+  }
+  if (status === 'grace_period') {
+    return (
+      <div className="flex h-12 w-12 items-center justify-center rounded-full bg-yellow-500/10">
+        <svg className="h-6 w-6 text-yellow-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+          <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+      </div>
+    );
+  }
+  if (status === 'expired') {
+    return (
+      <div className="flex h-12 w-12 items-center justify-center rounded-full bg-red-500/10">
+        <svg className="h-6 w-6 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+          <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4.5c-.77-.833-2.694-.833-3.464 0L3.34 16.5c-.77.833.192 2.5 1.732 2.5z" />
+        </svg>
+      </div>
+    );
+  }
+  // no_license / unknown / suspended
   return (
-    <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${c.className}`}>
-      {c.label}
-    </span>
+    <div className="flex h-12 w-12 items-center justify-center rounded-full bg-zinc-500/10">
+      <svg className="h-6 w-6 text-zinc-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
+      </svg>
+    </div>
   );
 }
 
-function StatusDot({ valid }: { valid: boolean }) {
+function LicenseStatusLabel({ status }: { status: string }) {
+  const config: Record<string, { label: string; description: string; color: string }> = {
+    active: { label: 'Licensed', description: 'Your license is active and valid', color: 'text-green-500' },
+    grace_period: { label: 'Grace Period', description: 'License is in grace period — please renew soon', color: 'text-yellow-500' },
+    expired: { label: 'Expired', description: 'Your license has expired', color: 'text-red-500' },
+    suspended: { label: 'Suspended', description: 'Your license has been suspended', color: 'text-red-500' },
+    no_license: { label: 'Unlicensed', description: 'No license key has been activated', color: 'text-zinc-400' },
+  };
+  const c = config[status] || { label: 'Invalid', description: 'License validation failed', color: 'text-red-500' };
+
   return (
-    <span className={`inline-block h-2 w-2 rounded-full ${valid ? 'bg-green-500' : 'bg-red-500'}`} />
+    <div>
+      <p className={`text-lg font-semibold ${c.color}`}>{c.label}</p>
+      <p className="text-sm text-muted-foreground">{c.description}</p>
+    </div>
   );
+}
+
+function maskLicenseKey(key: string) {
+  if (key.length <= 8) return '****';
+  return key.slice(0, 3) + '-' + '*'.repeat(4) + '-' + '*'.repeat(4) + '-' + key.slice(-4);
 }
 
 export default function SettingsPage() {
@@ -254,55 +281,73 @@ export default function SettingsPage() {
 
         <Card>
           <CardHeader>
-            <div className="flex items-center justify-between">
-              <CardTitle className="flex items-center gap-2">
-                License
-                {licenseStatus && <StatusDot valid={licenseStatus.valid} />}
-              </CardTitle>
-              <Button variant="ghost" size="sm" onClick={loadLicenseStatus} className="text-xs text-muted-foreground">
-                Refresh
-              </Button>
-            </div>
+            <CardTitle>License</CardTitle>
           </CardHeader>
-          <CardContent className="space-y-4">
+          <CardContent className="space-y-5">
+            {/* Status banner */}
             {licenseStatus && (
-              <div className="rounded-lg border p-4 space-y-3">
-                <div className="flex items-center justify-between">
-                  <span className="text-sm font-medium">Status</span>
-                  <StatusBadge status={licenseStatus.status} />
+              <div className={`rounded-lg border p-4 ${
+                licenseStatus.status === 'active'
+                  ? 'border-green-500/20 bg-green-500/5'
+                  : licenseStatus.status === 'grace_period'
+                    ? 'border-yellow-500/20 bg-yellow-500/5'
+                    : licenseStatus.status === 'expired' || licenseStatus.status === 'suspended'
+                      ? 'border-red-500/20 bg-red-500/5'
+                      : 'border-zinc-500/20 bg-zinc-500/5'
+              }`}>
+                <div className="flex items-center gap-4">
+                  <LicenseStatusIcon status={licenseStatus.status} />
+                  <LicenseStatusLabel status={licenseStatus.status} />
                 </div>
+
+                {/* Error message */}
+                {licenseStatus.initError && (
+                  <div className="mt-3 rounded-md bg-red-500/10 px-3 py-2 text-sm text-red-500">
+                    {licenseStatus.initError}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* License details grid */}
+            {licenseStatus && licenseStatus.status !== 'no_license' && (
+              <div className="grid grid-cols-2 gap-4 rounded-lg border p-4">
+                {settings?.licenseKey && (
+                  <div>
+                    <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">License Key</p>
+                    <p className="mt-1 font-mono text-sm">{maskLicenseKey(settings.licenseKey)}</p>
+                  </div>
+                )}
                 {licenseStatus.product && (
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm font-medium">Product</span>
-                    <span className="text-sm text-muted-foreground">{licenseStatus.product}</span>
+                  <div>
+                    <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Product</p>
+                    <p className="mt-1 text-sm">{licenseStatus.product}</p>
                   </div>
                 )}
                 {licenseStatus.tier && (
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm font-medium">Tier</span>
-                    <span className="text-sm text-muted-foreground capitalize">{licenseStatus.tier}</span>
-                  </div>
-                )}
-                {licenseStatus.expiresAt && (
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm font-medium">Expires</span>
-                    <span className="text-sm text-muted-foreground">
-                      {new Date(licenseStatus.expiresAt).toLocaleDateString(undefined, {
-                        year: 'numeric',
-                        month: 'long',
-                        day: 'numeric',
-                      })}
-                    </span>
-                  </div>
-                )}
-                {licenseStatus.features.length > 0 && (
                   <div>
-                    <span className="text-sm font-medium">Features</span>
+                    <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Tier</p>
+                    <p className="mt-1 text-sm capitalize">{licenseStatus.tier}</p>
+                  </div>
+                )}
+                <div>
+                  <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Expires</p>
+                  <p className="mt-1 text-sm">
+                    {licenseStatus.expiresAt
+                      ? new Date(licenseStatus.expiresAt).toLocaleDateString(undefined, {
+                          year: 'numeric', month: 'long', day: 'numeric',
+                        })
+                      : 'Never'}
+                  </p>
+                </div>
+                {licenseStatus.features.length > 0 && (
+                  <div className="col-span-2">
+                    <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Features</p>
                     <div className="mt-1.5 flex flex-wrap gap-1.5">
                       {licenseStatus.features.map((f) => (
                         <span
                           key={f}
-                          className="inline-flex items-center rounded-full bg-blue-100 px-2.5 py-0.5 text-xs font-medium text-blue-800 dark:bg-blue-900/30 dark:text-blue-400"
+                          className="inline-flex items-center rounded-full bg-blue-500/10 px-2.5 py-0.5 text-xs font-medium text-blue-400"
                         >
                           {f}
                         </span>
@@ -310,25 +355,24 @@ export default function SettingsPage() {
                     </div>
                   </div>
                 )}
-                {licenseStatus.initError && (
-                  <div className="rounded-md bg-red-50 px-3 py-2 text-sm text-red-800 dark:bg-red-950/20 dark:text-red-400">
-                    {licenseStatus.initError}
-                  </div>
-                )}
               </div>
             )}
+
+            {/* Activation input */}
             <div>
-              <label className="mb-1 block text-sm font-medium">License Key</label>
+              <label className="mb-1 block text-sm font-medium">
+                {licenseStatus?.status === 'no_license' ? 'Activate License' : 'Change License Key'}
+              </label>
               <div className="flex gap-2">
                 <Input
                   value={licenseKey}
                   onChange={(e) => setLicenseKey(e.target.value)}
-                  placeholder="Enter license key"
+                  placeholder="LF-XXXX-XXXX-XXXX-XXXX"
                   type="password"
                   onKeyDown={(e) => { if (e.key === 'Enter') handleActivateLicense(); }}
                 />
                 <Button onClick={handleActivateLicense} disabled={activatingLicense || !licenseKey.trim()}>
-                  {activatingLicense ? 'Activating...' : 'Activate'}
+                  {activatingLicense ? 'Validating...' : 'Activate'}
                 </Button>
               </div>
             </div>
