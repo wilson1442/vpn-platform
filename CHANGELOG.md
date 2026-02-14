@@ -1,5 +1,14 @@
 # Changelog
 
+## v0.0.4
+
+- Add LicenseForge licensing system with SDK-based validation and feature gating
+- License activation and status display on admin settings page
+- License alert banner for unlicensed installations with activation dialog
+- Feature-gated resellers module (requires `resellers` feature on license tier)
+- Real-time license validation feedback with detailed error messages
+- License context provider for frontend license state management
+
 ## v0.0.3
 
 - Add reseller dropdown on create reseller form (replaces raw ID input)
