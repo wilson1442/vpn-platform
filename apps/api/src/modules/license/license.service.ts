@@ -6,6 +6,7 @@ import {
   VALIDATE_INTERVAL,
   HEARTBEAT_INTERVAL,
   OFFLINE_GRACE_PERIOD,
+  PANEL_GRACE_PERIOD_DAYS,
 } from './license.constants';
 
 // Dynamic import for the ESM SDK — use Function to prevent TS from converting to require()
@@ -147,8 +148,39 @@ export class LicenseService implements OnModuleInit {
     return false;
   }
 
-  getStatus() {
+  private async updateGracePeriod(isActive: boolean): Promise<{ gracePeriodEndsAt: string | null; locked: boolean }> {
+    const settings = await this.prisma.appSettings.findUnique({ where: { id: 'singleton' } });
+    if (!settings) return { gracePeriodEndsAt: null, locked: false };
+
+    if (isActive) {
+      // License is active — clear grace period if set
+      if (settings.licenseGraceStart) {
+        await this.prisma.appSettings.update({
+          where: { id: 'singleton' },
+          data: { licenseGraceStart: null },
+        });
+      }
+      return { gracePeriodEndsAt: null, locked: false };
+    }
+
+    // License is NOT active — start or continue grace period
+    let graceStart = settings.licenseGraceStart;
+    if (!graceStart) {
+      graceStart = new Date();
+      await this.prisma.appSettings.update({
+        where: { id: 'singleton' },
+        data: { licenseGraceStart: graceStart },
+      });
+    }
+
+    const endsAt = new Date(graceStart.getTime() + PANEL_GRACE_PERIOD_DAYS * 24 * 60 * 60 * 1000);
+    const locked = new Date() > endsAt;
+    return { gracePeriodEndsAt: endsAt.toISOString(), locked };
+  }
+
+  async getStatus() {
     if (!this.lf) {
+      const grace = await this.updateGracePeriod(false);
       return {
         valid: false,
         status: 'no_license',
@@ -157,6 +189,7 @@ export class LicenseService implements OnModuleInit {
         features: [] as string[],
         product: null as string | null,
         initError: this.initError,
+        ...grace,
       };
     }
 
@@ -165,6 +198,8 @@ export class LicenseService implements OnModuleInit {
     const features = info.features && typeof info.features === 'object' && !Array.isArray(info.features)
       ? Object.keys(info.features)
       : Array.isArray(info.features) ? info.features : [];
+    const isActive = info.status === 'active';
+    const grace = await this.updateGracePeriod(isActive);
     return {
       valid: info.valid,
       status: info.status,
@@ -173,18 +208,22 @@ export class LicenseService implements OnModuleInit {
       features,
       product: this.statusData?.product || null,
       initError: this.initError,
+      ...grace,
     };
   }
 
-  getFeatures() {
+  async getFeatures() {
     if (!this.lf) {
-      return { valid: false, status: 'no_license', features: [] as string[] };
+      const grace = await this.updateGracePeriod(false);
+      return { valid: false, status: 'no_license', features: [] as string[], ...grace };
     }
 
     const info: LicenseInfoType = this.lf.getLicenseInfo();
     const features = info.features && typeof info.features === 'object' && !Array.isArray(info.features)
       ? Object.keys(info.features)
       : Array.isArray(info.features) ? info.features : [];
-    return { valid: info.valid, status: info.status, features };
+    const isActive = info.status === 'active';
+    const grace = await this.updateGracePeriod(isActive);
+    return { valid: info.valid, status: info.status, features, ...grace };
   }
 }

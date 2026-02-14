@@ -9,6 +9,7 @@ import { MobileHeader } from '@/components/mobile-header';
 import { DesktopHeader } from '@/components/desktop-header';
 import { ImpersonationBanner } from '@/components/impersonation-banner';
 import { LicenseAlert } from '@/components/license-alert';
+import { LicenseBanner } from '@/components/license-banner';
 
 export default function UserLayout({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();
@@ -28,6 +29,7 @@ export default function UserLayout({ children }: { children: React.ReactNode }) 
     <MobileNavProvider>
       <div className="flex h-screen flex-col">
         <ImpersonationBanner />
+        <LicenseBanner />
         <div className="flex flex-1 flex-col overflow-hidden md:flex-row">
           <Sidebar />
           <div className="flex flex-1 flex-col overflow-hidden">

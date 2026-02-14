@@ -25,6 +25,8 @@ interface LicenseStatus {
   features: string[];
   product: string | null;
   initError: string | null;
+  gracePeriodEndsAt: string | null;
+  locked: boolean;
 }
 
 function LicenseStatusIcon({ status }: { status: string }) {
@@ -304,6 +306,19 @@ export default function SettingsPage() {
                 {licenseStatus.initError && (
                   <div className="mt-3 rounded-md bg-red-500/10 px-3 py-2 text-sm text-red-500">
                     {licenseStatus.initError}
+                  </div>
+                )}
+
+                {/* Grace period warning */}
+                {licenseStatus.status !== 'active' && licenseStatus.gracePeriodEndsAt && (
+                  <div className={`mt-3 rounded-md px-3 py-2 text-sm ${
+                    licenseStatus.locked
+                      ? 'bg-red-500/10 text-red-500'
+                      : 'bg-amber-500/10 text-amber-600 dark:text-amber-400'
+                  }`}>
+                    {licenseStatus.locked
+                      ? 'Panel is locked. Enter a valid license key below to unlock.'
+                      : `Panel will lock on ${new Date(licenseStatus.gracePeriodEndsAt).toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' })}`}
                   </div>
                 )}
               </div>

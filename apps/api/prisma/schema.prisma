@@ -242,12 +242,13 @@ model PaymentGateway {
 }
 
 model AppSettings {
-  id         String   @id @default("singleton")
-  siteName   String   @default("VPN Platform")
-  logoPath   String?
-  licenseKey String?
-  githubRepo String   @default("")
-  updatedAt  DateTime @updatedAt
+  id                String    @id @default("singleton")
+  siteName          String    @default("VPN Platform")
+  logoPath          String?
+  licenseKey        String?
+  githubRepo        String    @default("")
+  licenseGraceStart DateTime?
+  updatedAt         DateTime  @updatedAt
 }
 
 model AuditLog {

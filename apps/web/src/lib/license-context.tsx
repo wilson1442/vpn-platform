@@ -9,6 +9,8 @@ interface LicenseContextType {
   valid: boolean;
   status: string;
   loading: boolean;
+  gracePeriodEndsAt: string | null;
+  locked: boolean;
   hasFeature: (slug: string) => boolean;
   refresh: () => Promise<void>;
 }
@@ -18,6 +20,8 @@ const LicenseContext = createContext<LicenseContextType>({
   valid: false,
   status: 'no_license',
   loading: true,
+  gracePeriodEndsAt: null,
+  locked: false,
   hasFeature: () => false,
   refresh: async () => {},
 });
@@ -28,17 +32,23 @@ export function LicenseProvider({ children }: { children: React.ReactNode }) {
   const [valid, setValid] = useState(false);
   const [status, setStatus] = useState('no_license');
   const [loading, setLoading] = useState(true);
+  const [gracePeriodEndsAt, setGracePeriodEndsAt] = useState<string | null>(null);
+  const [locked, setLocked] = useState(false);
 
   const fetchFeatures = useCallback(async () => {
     try {
-      const data = await api<{ valid: boolean; status: string; features: string[] }>('/license/features');
+      const data = await api<{ valid: boolean; status: string; features: string[]; gracePeriodEndsAt: string | null; locked: boolean }>('/license/features');
       setValid(data.valid);
       setStatus(data.status);
       setFeatures(data.features);
+      setGracePeriodEndsAt(data.gracePeriodEndsAt);
+      setLocked(data.locked);
     } catch {
       setValid(false);
       setStatus('no_license');
       setFeatures([]);
+      setGracePeriodEndsAt(null);
+      setLocked(false);
     } finally {
       setLoading(false);
     }
@@ -51,6 +61,8 @@ export function LicenseProvider({ children }: { children: React.ReactNode }) {
       setValid(false);
       setStatus('no_license');
       setFeatures([]);
+      setGracePeriodEndsAt(null);
+      setLocked(false);
       setLoading(false);
     }
   }, [user, fetchFeatures]);
@@ -66,7 +78,7 @@ export function LicenseProvider({ children }: { children: React.ReactNode }) {
   }, [fetchFeatures]);
 
   return (
-    <LicenseContext.Provider value={{ features, valid, status, loading, hasFeature, refresh }}>
+    <LicenseContext.Provider value={{ features, valid, status, loading, gracePeriodEndsAt, locked, hasFeature, refresh }}>
       {children}
     </LicenseContext.Provider>
   );
