@@ -23,7 +23,6 @@ interface LicenseStatus {
   tier: string | null;
   expiresAt: string | null;
   features: string[];
-  customerEmail: string | null;
   product: string | null;
   initError: string | null;
 }
@@ -282,12 +281,6 @@ export default function SettingsPage() {
                   <div className="flex items-center justify-between">
                     <span className="text-sm font-medium">Tier</span>
                     <span className="text-sm text-muted-foreground capitalize">{licenseStatus.tier}</span>
-                  </div>
-                )}
-                {licenseStatus.customerEmail && (
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm font-medium">Customer</span>
-                    <span className="text-sm text-muted-foreground">{licenseStatus.customerEmail}</span>
                   </div>
                 )}
                 {licenseStatus.expiresAt && (

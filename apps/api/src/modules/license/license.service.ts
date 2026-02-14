@@ -24,8 +24,7 @@ export class LicenseService implements OnModuleInit {
   private lf: LicenseForgeType | null = null;
   private initError: string | null = null;
   private licenseKey: string | null = null;
-  private customerEmail: string | null = null;
-  private productSlug: string | null = null;
+  private statusData: { tier?: string; product?: string; expiresAt?: string | null } | null = null;
 
   constructor(private prisma: PrismaService) {}
 
@@ -44,21 +43,20 @@ export class LicenseService implements OnModuleInit {
       const { LicenseForge } = await loadSdk();
       this.lf = new LicenseForge({
         serverUrl: LICENSE_SERVER_URL,
-        productSlug: 'vpn-pro',
+        productSlug: 'vpn-platform',
         licenseKey,
         publicKey: LICENSE_PUBLIC_KEY,
         validateInterval: VALIDATE_INTERVAL,
         heartbeatInterval: HEARTBEAT_INTERVAL,
         offlineGracePeriod: OFFLINE_GRACE_PERIOD,
         onValidationFailed: (reason, details?: unknown) => {
-          // Extract meaningful info from SDK error details
           const apiCode = details && typeof details === 'object' && 'code' in details
             ? (details as any).code : null;
           const httpStatus = details && typeof details === 'object' && 'status' in details
             ? (details as any).status : null;
 
           if (httpStatus === 500 || apiCode === 'INTERNAL_ERROR') {
-            validationError = 'License server returned an error. Please verify the product exists on the license server and try again.';
+            validationError = 'License server returned an error. Please try again later.';
           } else if (httpStatus === 404 || apiCode === 'NOT_FOUND' || apiCode === 'LICENSE_NOT_FOUND') {
             validationError = 'License key not found. Please check your key and try again.';
           } else if (apiCode === 'LICENSE_EXPIRED') {
@@ -80,15 +78,12 @@ export class LicenseService implements OnModuleInit {
       });
       await this.lf.initialize();
 
-      // The SDK catches validation errors internally and doesn't throw.
-      // Check if the license is actually valid after initialization.
       if (!this.lf.isValid()) {
         this.initError = validationError || 'License validation failed';
         this.logger.error(`License invalid after init: ${this.initError}`);
       } else {
         this.initError = null;
         this.logger.log('License initialized successfully');
-        // Fetch extended info (customer email, etc.) from the server
         await this.fetchLicenseDetails(licenseKey);
       }
     } catch (err: any) {
@@ -100,21 +95,19 @@ export class LicenseService implements OnModuleInit {
 
   private async fetchLicenseDetails(licenseKey: string) {
     try {
-      const resp = await fetch(`${LICENSE_SERVER_URL}/api/v1/license/status`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ licenseKey, productSlug: 'vpn-pro' }),
-        signal: AbortSignal.timeout(5000),
-      });
+      const url = `${LICENSE_SERVER_URL}/api/v1/license/status/${encodeURIComponent(licenseKey)}`;
+      const resp = await fetch(url, { signal: AbortSignal.timeout(5000) });
       if (resp.ok) {
-        const json = await resp.json() as { success?: boolean; data?: { customerEmail?: string; product?: string } };
+        const json = await resp.json() as {
+          success?: boolean;
+          data?: { tier?: string; product?: string; expiresAt?: string | null };
+        };
         if (json.success && json.data) {
-          this.customerEmail = json.data.customerEmail || null;
-          this.productSlug = json.data.product || null;
+          this.statusData = json.data;
         }
       }
     } catch {
-      // Non-critical — status page will just not show email
+      // Non-critical
     }
   }
 
@@ -127,8 +120,7 @@ export class LicenseService implements OnModuleInit {
       }
       this.lf = null;
       this.initError = null;
-      this.customerEmail = null;
-      this.productSlug = null;
+      this.statusData = null;
     }
 
     if (licenseKey) {
@@ -153,24 +145,26 @@ export class LicenseService implements OnModuleInit {
       return {
         valid: false,
         status: 'no_license',
-        tier: null,
-        expiresAt: null,
+        tier: null as string | null,
+        expiresAt: null as string | null,
         features: [] as string[],
-        customerEmail: null as string | null,
         product: null as string | null,
         initError: this.initError,
       };
     }
 
     const info: LicenseInfoType = this.lf.getLicenseInfo();
+    // SDK returns features as Record<string, unknown>; convert keys to string[]
+    const features = info.features && typeof info.features === 'object' && !Array.isArray(info.features)
+      ? Object.keys(info.features)
+      : Array.isArray(info.features) ? info.features : [];
     return {
       valid: info.valid,
       status: info.status,
-      tier: info.tier,
-      expiresAt: info.expiresAt,
-      features: info.features,
-      customerEmail: this.customerEmail,
-      product: this.productSlug,
+      tier: info.tier || this.statusData?.tier || null,
+      expiresAt: info.expiresAt || this.statusData?.expiresAt || null,
+      features,
+      product: this.statusData?.product || null,
       initError: this.initError,
     };
   }
@@ -181,6 +175,9 @@ export class LicenseService implements OnModuleInit {
     }
 
     const info: LicenseInfoType = this.lf.getLicenseInfo();
-    return { valid: info.valid, status: info.status, features: info.features };
+    const features = info.features && typeof info.features === 'object' && !Array.isArray(info.features)
+      ? Object.keys(info.features)
+      : Array.isArray(info.features) ? info.features : [];
+    return { valid: info.valid, status: info.status, features };
   }
 }
