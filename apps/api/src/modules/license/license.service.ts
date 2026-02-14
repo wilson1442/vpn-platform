@@ -51,16 +51,28 @@ export class LicenseService implements OnModuleInit {
         heartbeatInterval: HEARTBEAT_INTERVAL,
         offlineGracePeriod: OFFLINE_GRACE_PERIOD,
         onValidationFailed: (reason, details?: unknown) => {
-          // Extract a meaningful message from the SDK error details
-          const detail = details instanceof Error ? details.message : null;
+          // Extract meaningful info from SDK error details
           const apiCode = details && typeof details === 'object' && 'code' in details
             ? (details as any).code : null;
-          validationError = apiCode
-            ? `${reason} (${apiCode})`
-            : detail && detail !== reason
-              ? `${reason}: ${detail}`
-              : reason;
-          this.logger.warn(`License validation failed: ${validationError}`);
+          const httpStatus = details && typeof details === 'object' && 'status' in details
+            ? (details as any).status : null;
+
+          if (httpStatus === 500 || apiCode === 'INTERNAL_ERROR') {
+            validationError = 'License server returned an error. Please verify the product exists on the license server and try again.';
+          } else if (httpStatus === 404 || apiCode === 'NOT_FOUND' || apiCode === 'LICENSE_NOT_FOUND') {
+            validationError = 'License key not found. Please check your key and try again.';
+          } else if (apiCode === 'LICENSE_EXPIRED') {
+            validationError = 'This license has expired.';
+          } else if (apiCode === 'LICENSE_SUSPENDED') {
+            validationError = 'This license has been suspended.';
+          } else if (apiCode === 'PRODUCT_MISMATCH') {
+            validationError = 'License key does not match this product.';
+          } else if (apiCode) {
+            validationError = `${reason} (${apiCode})`;
+          } else {
+            validationError = reason;
+          }
+          this.logger.warn(`License validation failed: ${validationError} [code=${apiCode}, status=${httpStatus}]`);
         },
         onGracePeriod: (daysLeft) => {
           this.logger.warn(`License in grace period: ${daysLeft} days left`);
