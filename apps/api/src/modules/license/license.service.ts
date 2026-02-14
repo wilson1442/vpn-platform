@@ -50,9 +50,17 @@ export class LicenseService implements OnModuleInit {
         validateInterval: VALIDATE_INTERVAL,
         heartbeatInterval: HEARTBEAT_INTERVAL,
         offlineGracePeriod: OFFLINE_GRACE_PERIOD,
-        onValidationFailed: (reason) => {
-          validationError = reason;
-          this.logger.warn(`License validation failed: ${reason}`);
+        onValidationFailed: (reason, details?: unknown) => {
+          // Extract a meaningful message from the SDK error details
+          const detail = details instanceof Error ? details.message : null;
+          const apiCode = details && typeof details === 'object' && 'code' in details
+            ? (details as any).code : null;
+          validationError = apiCode
+            ? `${reason} (${apiCode})`
+            : detail && detail !== reason
+              ? `${reason}: ${detail}`
+              : reason;
+          this.logger.warn(`License validation failed: ${validationError}`);
         },
         onGracePeriod: (daysLeft) => {
           this.logger.warn(`License in grace period: ${daysLeft} days left`);

@@ -43,17 +43,21 @@ export function LicenseAlert() {
     setActivating(true);
     setError(null);
     try {
-      await api('/settings', {
+      const result = await api<{ licenseStatus?: { valid: boolean; initError: string | null } }>('/settings', {
         method: 'PATCH',
         body: JSON.stringify({ licenseKey: licenseKey.trim() }),
       });
       await refresh();
-      setSuccess(true);
-      setTimeout(() => {
-        setOpen(false);
-        setSuccess(false);
-        setLicenseKey('');
-      }, 1500);
+      if (result.licenseStatus?.valid) {
+        setSuccess(true);
+        setTimeout(() => {
+          setOpen(false);
+          setSuccess(false);
+          setLicenseKey('');
+        }, 1500);
+      } else {
+        setError(result.licenseStatus?.initError || 'License validation failed');
+      }
     } catch (err: any) {
       setError(err.message || 'Failed to activate license');
     } finally {

@@ -77,7 +77,8 @@ export class SettingsService {
     });
 
     if ('licenseKey' in data) {
-      await this.licenseService.reinitialize(data.licenseKey || null);
+      const licenseStatus = await this.licenseService.reinitialize(data.licenseKey || null);
+      return { ...settings, licenseStatus };
     }
 
     return settings;

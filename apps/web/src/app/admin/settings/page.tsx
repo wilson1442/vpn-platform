@@ -138,13 +138,18 @@ export default function SettingsPage() {
     if (!licenseKey.trim()) return;
     setActivatingLicense(true);
     try {
-      await api('/settings', {
+      const result = await api<{ licenseStatus?: LicenseStatus }>('/settings', {
         method: 'PATCH',
         body: JSON.stringify({ licenseKey: licenseKey.trim() }),
       });
       await loadLicenseStatus();
       refreshLicense();
-      showMessage('License key saved', 'success');
+      if (result.licenseStatus?.valid) {
+        showMessage('License activated successfully', 'success');
+      } else {
+        const err = result.licenseStatus?.initError || 'License validation failed';
+        showMessage(err, 'error');
+      }
     } catch (err: any) {
       showMessage(err.message || 'Failed to save license key', 'error');
     } finally {
