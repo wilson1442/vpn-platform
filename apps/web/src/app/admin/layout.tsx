@@ -8,6 +8,7 @@ import { Sidebar } from '@/components/sidebar';
 import { MobileHeader } from '@/components/mobile-header';
 import { DesktopHeader } from '@/components/desktop-header';
 import { ImpersonationBanner } from '@/components/impersonation-banner';
+import { LicenseAlert } from '@/components/license-alert';
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();
@@ -35,6 +36,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             <main className="flex-1 overflow-auto p-4 md:p-6">{children}</main>
           </div>
         </div>
+        <LicenseAlert />
       </div>
     </MobileNavProvider>
   );

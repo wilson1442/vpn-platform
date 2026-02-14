@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { UpdateWizard } from '@/components/update-wizard';
+import { useLicense } from '@/lib/license-context';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
 
@@ -16,7 +17,17 @@ interface Settings {
   githubRepo: string;
 }
 
+interface LicenseStatus {
+  valid: boolean;
+  status: string;
+  tier: string | null;
+  expiresAt: string | null;
+  features: string[];
+  initError: string | null;
+}
+
 export default function SettingsPage() {
+  const { refresh: refreshLicense } = useLicense();
   const [settings, setSettings] = useState<Settings | null>(null);
   const [siteName, setSiteName] = useState('');
   const [licenseKey, setLicenseKey] = useState('');
@@ -29,8 +40,14 @@ export default function SettingsPage() {
   const [updateDialogOpen, setUpdateDialogOpen] = useState(false);
   const [message, setMessage] = useState<{ text: string; type: 'success' | 'error' } | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
+  const [licenseStatus, setLicenseStatus] = useState<LicenseStatus | null>(null);
 
-  const load = () =>
+  const loadLicenseStatus = () =>
+    api<LicenseStatus>('/license/status')
+      .then((data) => setLicenseStatus(data))
+      .catch(() => {});
+
+  const load = () => {
     api<Settings>('/settings')
       .then((data) => {
         setSettings(data);
@@ -45,6 +62,8 @@ export default function SettingsPage() {
       .catch((err) => {
         setLoadError(err.message || 'Failed to load settings');
       });
+    loadLicenseStatus();
+  };
 
   useEffect(() => {
     load();
@@ -64,6 +83,7 @@ export default function SettingsPage() {
       });
       showMessage('Settings saved', 'success');
       load();
+      refreshLicense();
     } catch (err: any) {
       showMessage(err.message || 'Failed to save settings', 'error');
     } finally {
@@ -169,15 +189,78 @@ export default function SettingsPage() {
 
         <Card>
           <CardHeader>
-            <CardTitle>License Key</CardTitle>
+            <CardTitle>License</CardTitle>
           </CardHeader>
-          <CardContent>
-            <Input
-              value={licenseKey}
-              onChange={(e) => setLicenseKey(e.target.value)}
-              placeholder="Enter license key"
-              type="password"
-            />
+          <CardContent className="space-y-4">
+            {licenseStatus && (
+              <div className="space-y-3">
+                <div className="flex items-center gap-2">
+                  <span className="text-sm font-medium">Status:</span>
+                  <span
+                    className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${
+                      licenseStatus.status === 'active'
+                        ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400'
+                        : licenseStatus.status === 'grace_period'
+                          ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400'
+                          : licenseStatus.status === 'expired'
+                            ? 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400'
+                            : 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-400'
+                    }`}
+                  >
+                    {licenseStatus.status === 'active'
+                      ? 'Active'
+                      : licenseStatus.status === 'grace_period'
+                        ? 'Grace Period'
+                        : licenseStatus.status === 'expired'
+                          ? 'Expired'
+                          : 'No License'}
+                  </span>
+                </div>
+                {licenseStatus.tier && (
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm font-medium">Tier:</span>
+                    <span className="text-sm text-muted-foreground capitalize">{licenseStatus.tier}</span>
+                  </div>
+                )}
+                {licenseStatus.expiresAt && (
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm font-medium">Expires:</span>
+                    <span className="text-sm text-muted-foreground">
+                      {new Date(licenseStatus.expiresAt).toLocaleDateString()}
+                    </span>
+                  </div>
+                )}
+                {licenseStatus.features.length > 0 && (
+                  <div>
+                    <span className="text-sm font-medium">Features:</span>
+                    <div className="mt-1 flex flex-wrap gap-1">
+                      {licenseStatus.features.map((f) => (
+                        <span
+                          key={f}
+                          className="inline-flex items-center rounded-full bg-blue-100 px-2.5 py-0.5 text-xs font-medium text-blue-800 dark:bg-blue-900/30 dark:text-blue-400"
+                        >
+                          {f}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                {licenseStatus.initError && (
+                  <div className="rounded-md bg-red-50 px-3 py-2 text-sm text-red-800 dark:bg-red-950/20 dark:text-red-400">
+                    {licenseStatus.initError}
+                  </div>
+                )}
+              </div>
+            )}
+            <div>
+              <label className="mb-1 block text-sm font-medium">License Key</label>
+              <Input
+                value={licenseKey}
+                onChange={(e) => setLicenseKey(e.target.value)}
+                placeholder="Enter license key"
+                type="password"
+              />
+            </div>
           </CardContent>
         </Card>
 

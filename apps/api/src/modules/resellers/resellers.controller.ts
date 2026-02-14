@@ -2,8 +2,10 @@ import { Controller, Get, Post, Patch, Delete, Param, Body } from '@nestjs/commo
 import { Role } from '@prisma/client';
 import { ResellersService } from './resellers.service';
 import { Roles, CurrentUser } from '../../common/decorators';
+import { RequireFeature } from '../license/license.constants';
 
 @Controller('resellers')
+@RequireFeature('resellers')
 export class ResellersController {
   constructor(private resellers: ResellersService) {}
 

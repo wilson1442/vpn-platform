@@ -14,6 +14,7 @@ import { ConfigDeliveryModule } from './modules/config-delivery/config-delivery.
 import { SettingsModule } from './modules/settings/settings.module';
 import { StatsModule } from './modules/stats/stats.module';
 import { ProfileModule } from './modules/profile/profile.module';
+import { LicenseModule } from './modules/license/license.module';
 
 @Module({
   imports: [
@@ -37,6 +38,7 @@ import { ProfileModule } from './modules/profile/profile.module';
     SettingsModule,
     StatsModule,
     ProfileModule,
+    LicenseModule,
   ],
 })
 export class AppModule {}

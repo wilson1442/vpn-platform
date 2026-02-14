@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { useAuth } from '@/lib/auth-context';
+import { useLicense } from '@/lib/license-context';
 import { useMobileNav } from '@/lib/mobile-nav-context';
 import { cn } from '@/lib/utils';
 import { Button } from './ui/button';
@@ -13,12 +14,13 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
 interface NavItem {
   label: string;
   href: string;
+  feature?: string;
   children?: NavItem[];
 }
 
 const adminNav: NavItem[] = [
   { label: 'Dashboard', href: '/admin' },
-  { label: 'Resellers', href: '/admin/resellers' },
+  { label: 'Resellers', href: '/admin/resellers', feature: 'resellers' },
   { label: 'Users', href: '/admin/users' },
   { label: 'VPN Nodes', href: '/admin/vpn-nodes' },
   { label: 'Packages', href: '/admin/packages' },
@@ -136,6 +138,7 @@ function NavLink({ item, pathname, onNavigate }: { item: NavItem; pathname: stri
 
 export function Sidebar() {
   const { user, logout } = useAuth();
+  const { hasFeature } = useLicense();
   const pathname = usePathname();
   const { isOpen, close } = useMobileNav();
   const [branding, setBranding] = useState<PublicSettings>({ siteName: 'VPN Platform', logoPath: null });
@@ -157,7 +160,8 @@ export function Sidebar() {
       .catch(() => {});
   }, []);
 
-  const nav = user?.role === 'ADMIN' ? adminNav : user?.role === 'RESELLER' ? resellerNav : userNav;
+  const rawNav = user?.role === 'ADMIN' ? adminNav : user?.role === 'RESELLER' ? resellerNav : userNav;
+  const nav = rawNav.filter(item => !item.feature || hasFeature(item.feature));
 
   return (
     <>

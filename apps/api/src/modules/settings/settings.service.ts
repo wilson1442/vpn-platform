@@ -1,5 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { PrismaService } from '../../common/prisma.service';
+import { LicenseService } from '../license/license.service';
 import { exec } from 'child_process';
 import { promisify } from 'util';
 import * as path from 'path';
@@ -14,7 +15,10 @@ export class SettingsService {
   private readonly uploadsDir = path.join(process.cwd(), 'uploads');
   private readonly repoDir = path.resolve(process.cwd(), '../..');
 
-  constructor(private prisma: PrismaService) {
+  constructor(
+    private prisma: PrismaService,
+    private licenseService: LicenseService,
+  ) {
     if (!fsSync.existsSync(this.uploadsDir)) {
       fsSync.mkdirSync(this.uploadsDir, { recursive: true });
     }
@@ -66,11 +70,17 @@ export class SettingsService {
   }
 
   async updateSettings(data: { siteName?: string; licenseKey?: string; githubRepo?: string }) {
-    return this.prisma.appSettings.upsert({
+    const settings = await this.prisma.appSettings.upsert({
       where: { id: 'singleton' },
       create: { ...data },
       update: { ...data },
     });
+
+    if ('licenseKey' in data) {
+      await this.licenseService.reinitialize(data.licenseKey || null);
+    }
+
+    return settings;
   }
 
   async uploadLogo(file: { originalname: string; buffer: Buffer }) {
