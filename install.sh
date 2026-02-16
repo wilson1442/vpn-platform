@@ -336,8 +336,12 @@ install_application() {
     # Copy static files for Next.js standalone build
     info "Preparing standalone web build..."
     if [ -d "${INSTALL_DIR}/apps/web/.next/standalone" ]; then
-        cp -r "${INSTALL_DIR}/apps/web/public" "${INSTALL_DIR}/apps/web/.next/standalone/apps/web/" 2>/dev/null || true
-        cp -r "${INSTALL_DIR}/apps/web/.next/static" "${INSTALL_DIR}/apps/web/.next/standalone/apps/web/.next/" 2>/dev/null || true
+        mkdir -p "${INSTALL_DIR}/apps/web/.next/standalone/apps/web/.next"
+        cp -r "${INSTALL_DIR}/apps/web/public" "${INSTALL_DIR}/apps/web/.next/standalone/apps/web/"
+        cp -r "${INSTALL_DIR}/apps/web/.next/static" "${INSTALL_DIR}/apps/web/.next/standalone/apps/web/.next/"
+        success "Static files copied to standalone build"
+    else
+        warn "Standalone build directory not found — static files not copied"
     fi
 
     success "Application built"

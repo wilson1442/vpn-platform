@@ -6,6 +6,7 @@ import { promisify } from 'util';
 import * as path from 'path';
 import * as fs from 'fs/promises';
 import * as fsSync from 'fs';
+import * as nodemailer from 'nodemailer';
 
 const execAsync = promisify(exec);
 
@@ -69,7 +70,17 @@ export class SettingsService {
     return { siteName: settings.siteName, logoPath: settings.logoPath };
   }
 
-  async updateSettings(data: { siteName?: string; licenseKey?: string; githubRepo?: string }) {
+  async updateSettings(data: {
+    siteName?: string;
+    licenseKey?: string;
+    githubRepo?: string;
+    smtpHost?: string;
+    smtpPort?: number;
+    smtpUser?: string;
+    smtpPass?: string;
+    smtpFrom?: string;
+    smtpSecure?: boolean;
+  }) {
     const settings = await this.prisma.appSettings.upsert({
       where: { id: 'singleton' },
       create: { ...data },
@@ -174,6 +185,46 @@ export class SettingsService {
     }
   }
 
+  async getSmtpSettings() {
+    const settings = await this.getSettings();
+    return {
+      host: settings.smtpHost || undefined,
+      port: settings.smtpPort || undefined,
+      user: settings.smtpUser || undefined,
+      pass: settings.smtpPass || undefined,
+      from: settings.smtpFrom || undefined,
+      secure: settings.smtpSecure,
+    };
+  }
+
+  async testSmtp(to: string): Promise<{ success: boolean; message: string }> {
+    const smtp = await this.getSmtpSettings();
+    if (!smtp.host) {
+      throw new Error('SMTP host is not configured');
+    }
+
+    const transporter = nodemailer.createTransport({
+      host: smtp.host,
+      port: smtp.port || 587,
+      secure: smtp.secure,
+      ...(smtp.user && smtp.pass
+        ? { auth: { user: smtp.user, pass: smtp.pass } }
+        : {}),
+    });
+
+    try {
+      await transporter.sendMail({
+        from: smtp.from || `noreply@${smtp.host}`,
+        to,
+        subject: 'SMTP Test Email',
+        text: 'This is a test email from your VPN Platform. If you received this, your SMTP settings are configured correctly.',
+      });
+      return { success: true, message: `Test email sent to ${to}` };
+    } catch (error: any) {
+      return { success: false, message: error.message || 'Failed to send test email' };
+    }
+  }
+
   async applyUpdate(): Promise<{ success: boolean; output: string; newVersion: string }> {
     const outputs: string[] = [];
 
@@ -202,6 +253,17 @@ export class SettingsService {
         timeout: 600000, // 10 minutes
       });
       outputs.push('=== Build ===', buildOut, buildErr || '');
+
+      // Copy static files for Next.js standalone build
+      const webDir = path.join(this.repoDir, 'apps/web');
+      const standaloneWebDir = path.join(webDir, '.next/standalone/apps/web');
+      try {
+        await execAsync(`cp -r ${webDir}/public ${standaloneWebDir}/`, { cwd: this.repoDir });
+        await execAsync(`mkdir -p ${standaloneWebDir}/.next && cp -r ${webDir}/.next/static ${standaloneWebDir}/.next/`, { cwd: this.repoDir });
+        outputs.push('=== Static Files ===', 'Copied static files to standalone build');
+      } catch (copyErr: any) {
+        outputs.push('=== Static Files Warning ===', copyErr.message || 'Failed to copy static files');
+      }
 
       const { version: newVersion } = await this.getVersion();
 
