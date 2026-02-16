@@ -45,8 +45,27 @@ export class SettingsController {
 
   @Patch()
   @Roles(Role.ADMIN)
-  updateSettings(@Body() body: { siteName?: string; licenseKey?: string; githubRepo?: string }) {
+  updateSettings(
+    @Body()
+    body: {
+      siteName?: string;
+      licenseKey?: string;
+      githubRepo?: string;
+      smtpHost?: string;
+      smtpPort?: number;
+      smtpUser?: string;
+      smtpPass?: string;
+      smtpFrom?: string;
+      smtpSecure?: boolean;
+    },
+  ) {
     return this.settings.updateSettings(body);
+  }
+
+  @Post('test-email')
+  @Roles(Role.ADMIN)
+  testEmail(@Body() body: { to: string }) {
+    return this.settings.testSmtp(body.to);
   }
 
   @Post('logo')

@@ -19,6 +19,7 @@
     "@nestjs/jwt": "^10.2.0",
     "@nestjs/passport": "^10.0.3",
     "@nestjs/platform-express": "^10.4.0",
+    "@paypal/paypal-server-sdk": "^2.2.0",
     "@prisma/client": "^5.22.0",
     "@vpn/shared": "workspace:*",
     "argon2": "^0.41.0",

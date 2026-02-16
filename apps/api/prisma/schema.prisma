@@ -248,6 +248,12 @@ model AppSettings {
   licenseKey        String?
   githubRepo        String    @default("")
   licenseGraceStart DateTime?
+  smtpHost          String?
+  smtpPort          Int?
+  smtpUser          String?
+  smtpPass          String?
+  smtpFrom          String?
+  smtpSecure        Boolean   @default(false)
   updatedAt         DateTime  @updatedAt
 }
 
