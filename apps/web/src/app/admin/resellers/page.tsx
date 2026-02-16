@@ -233,14 +233,17 @@ export default function ResellersPage() {
       </Dialog>
 
       <DataTable
+        searchable
+        searchKeys={['companyName', 'user', 'parent']}
+        searchPlaceholder="Search resellers by name, email..."
         columns={[
-          { key: 'companyName', header: 'Name', render: (r) => <span className="font-heading font-semibold">{r.companyName}</span> },
-          { key: 'user', header: 'Email', hideOnMobile: true, render: (r) => <span className="font-body text-sm">{r.user?.email}</span> },
-          { key: 'creditBalance', header: 'Credits', render: (r) => <span className="font-mono font-medium text-cyan-400">{r.creditBalance}</span> },
-          { key: 'users', header: 'Users', render: (r) => <span className="font-mono text-xs">{r._count?.users ?? 0}</span> },
-          { key: 'lastLoginAt', header: 'Last Login', hideOnMobile: true, render: (r) => <span className="font-mono text-xs">{r.user?.lastLoginAt ? new Date(r.user.lastLoginAt).toLocaleDateString() : 'Never'}</span> },
-          { key: 'owner', header: 'Owner', hideOnMobile: true, render: (r) => <span className="font-body text-sm text-muted-foreground">{r.parent?.user?.username || '—'}</span> },
-          { key: 'createdAt', header: 'Created', hideOnMobile: true, render: (r) => <span className="font-mono text-xs text-cyan-400/70">{new Date(r.createdAt).toLocaleDateString()}</span> },
+          { key: 'companyName', header: 'Name', sortable: true, render: (r) => <span className="font-heading font-semibold">{r.companyName}</span> },
+          { key: 'user', header: 'Email', sortable: true, hideOnMobile: true, render: (r) => <span className="font-body text-sm">{r.user?.email}</span>, sortValue: (r) => r.user?.email || '' },
+          { key: 'creditBalance', header: 'Credits', sortable: true, render: (r) => <span className="font-mono font-medium text-cyan-400">{r.creditBalance}</span> },
+          { key: 'users', header: 'Users', sortable: true, render: (r) => <span className="font-mono text-xs">{r._count?.users ?? 0}</span>, sortValue: (r) => r._count?.users ?? 0 },
+          { key: 'lastLoginAt', header: 'Last Login', sortable: true, hideOnMobile: true, render: (r) => <span className="font-mono text-xs">{r.user?.lastLoginAt ? new Date(r.user.lastLoginAt).toLocaleDateString() : 'Never'}</span>, sortValue: (r) => r.user?.lastLoginAt ? new Date(r.user.lastLoginAt).getTime() : 0 },
+          { key: 'owner', header: 'Owner', sortable: true, hideOnMobile: true, render: (r) => <span className="font-body text-sm text-muted-foreground">{r.parent?.user?.username || '—'}</span>, sortValue: (r) => r.parent?.user?.username || '' },
+          { key: 'createdAt', header: 'Created', sortable: true, hideOnMobile: true, render: (r) => <span className="font-mono text-xs text-cyan-400/70">{new Date(r.createdAt).toLocaleDateString()}</span>, sortValue: (r) => new Date(r.createdAt).getTime() },
           { key: 'actions', header: 'Actions', render: (r) => (
             <div className="flex gap-1">
               <Button variant="ghost" size="sm" className="h-10 w-10 p-0 hover:text-cyan-400 hover:bg-cyan-500/10" onClick={() => impersonate(r.userId)} title="Login As">

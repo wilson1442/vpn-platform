@@ -12,6 +12,7 @@ import { Gauge } from '@/components/gauge';
 
 export default function AdminDashboard() {
   const [counts, setCounts] = useState({ users: 0, resellers: 0, nodes: 0 });
+  const [siteName, setSiteName] = useState('');
   const { stats } = useDashboardStats();
   const { valid, loading: licenseLoading } = useLicense();
 
@@ -23,6 +24,7 @@ export default function AdminDashboard() {
     ]).then(([users, resellers, nodes]) => {
       setCounts({ users, resellers, nodes });
     });
+    api<{ siteName: string }>('/settings/public').then((d) => setSiteName(d.siteName)).catch(() => {});
   }, []);
 
   const statCards = [
@@ -68,7 +70,7 @@ export default function AdminDashboard() {
   return (
     <div>
       <h1 className="font-heading mb-6 text-3xl font-bold bg-gradient-to-r from-cyan-400 via-teal-400 to-emerald-400 bg-clip-text text-transparent">
-        Admin Dashboard
+        {siteName ? `${siteName} Dashboard` : 'Dashboard'}
       </h1>
 
       {/* License warning banner */}
@@ -120,18 +122,23 @@ export default function AdminDashboard() {
         ))}
       </div>
 
-      {/* Row 2: Main Server */}
-      {stats?.server && (
-        <div className="mb-5">
-          <h2 className="font-heading mb-3 text-xl font-semibold bg-gradient-to-r from-cyan-400 via-teal-400 to-emerald-400 bg-clip-text text-transparent">
-            Main Server
-          </h2>
-          <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
+      {/* Row 2: Aggregate VPN Bandwidth */}
+      <div className="mb-5">
+        <BandwidthChart data={stats?.bandwidthHistory ?? []} />
+      </div>
+
+      {/* Row 3: Main Server + VPN Nodes side by side */}
+      <div>
+        <h2 className="font-heading mb-3 text-xl font-semibold bg-gradient-to-r from-cyan-400 via-teal-400 to-emerald-400 bg-clip-text text-transparent">
+          Servers
+        </h2>
+        <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
+          {stats?.server && (
             <Card className="rounded-xl border border-border/20 bg-card/40 backdrop-blur-sm hover:shadow-lg hover:shadow-cyan-500/5 transition-all duration-200">
               <CardHeader className="pb-2 pt-3 px-4">
                 <div className="flex items-center gap-2">
                   <span className="inline-block h-2 w-2 rounded-full bg-emerald-400 shadow-lg shadow-emerald-400/50 animate-pulse" />
-                  <CardTitle className="text-sm font-medium">API Server</CardTitle>
+                  <CardTitle className="text-sm font-medium">Main Server</CardTitle>
                 </div>
                 <p className="font-mono text-xs text-muted-foreground">{typeof window === 'undefined' ? '' : window.location.hostname}</p>
               </CardHeader>
@@ -147,28 +154,12 @@ export default function AdminDashboard() {
                 </div>
               </CardContent>
             </Card>
-          </div>
+          )}
+          {stats?.nodes?.map((node) => (
+            <NodeCard key={node.nodeId} node={node} />
+          ))}
         </div>
-      )}
-
-      {/* Row 3: Bandwidth chart */}
-      <div className="mb-5">
-        <BandwidthChart data={stats?.bandwidthHistory ?? []} />
       </div>
-
-      {/* Row 4: Node cards */}
-      {stats?.nodes && stats.nodes.length > 0 && (
-        <div>
-          <h2 className="font-heading mb-3 text-xl font-semibold bg-gradient-to-r from-cyan-400 via-teal-400 to-emerald-400 bg-clip-text text-transparent">
-            VPN Nodes
-          </h2>
-          <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
-            {stats.nodes.map((node) => (
-              <NodeCard key={node.nodeId} node={node} />
-            ))}
-          </div>
-        </div>
-      )}
     </div>
   );
 }

@@ -184,21 +184,24 @@ export default function UsersPage() {
       )}
 
       <DataTable
+        searchable
+        searchKeys={['username', 'email', 'role', 'reseller', 'entitlement']}
+        searchPlaceholder="Search users by name, email, role..."
         columns={[
-          { key: 'username', header: 'Username' },
-          { key: 'email', header: 'Email', hideOnMobile: true, render: (u) => u.email || '-' },
-          { key: 'owner', header: 'Owner', hideOnMobile: true, render: (u) => u.reseller ? u.reseller.companyName : 'Panel' },
-          { key: 'role', header: 'Role', render: (u) => <Badge variant={u.role === 'ADMIN' ? 'default' : 'secondary'}>{u.role}</Badge> },
-          { key: 'package', header: 'Package', render: (u) => u.entitlement?.package?.name || '-' },
-          { key: 'connections', header: 'Connections', render: (u) => u.entitlement ? `${u._count?.vpnSessions || 0} / ${u.entitlement.maxConnections}` : '-' },
-          { key: 'isActive', header: 'Status', render: (u) => {
+          { key: 'username', header: 'Username', sortable: true },
+          { key: 'email', header: 'Email', sortable: true, hideOnMobile: true, render: (u) => u.email || '-' },
+          { key: 'owner', header: 'Owner', sortable: true, hideOnMobile: true, render: (u) => u.reseller ? u.reseller.companyName : 'Panel', sortValue: (u) => u.reseller?.companyName || 'Panel' },
+          { key: 'role', header: 'Role', sortable: true, render: (u) => <Badge variant={u.role === 'ADMIN' ? 'default' : 'secondary'}>{u.role}</Badge> },
+          { key: 'package', header: 'Package', sortable: true, render: (u) => u.entitlement?.package?.name || '-', sortValue: (u) => u.entitlement?.package?.name || '' },
+          { key: 'connections', header: 'Connections', sortable: true, render: (u) => u.entitlement ? `${u._count?.vpnSessions || 0} / ${u.entitlement.maxConnections}` : '-', sortValue: (u) => u._count?.vpnSessions || 0 },
+          { key: 'isActive', header: 'Status', sortable: true, render: (u) => {
             const expired = u.expiresAt && new Date(u.expiresAt) < new Date();
             if (!u.isActive) return <Badge variant="destructive">Inactive</Badge>;
             if (expired) return <Badge variant="destructive">Expired</Badge>;
             return <Badge variant="default">Active</Badge>;
-          }},
-          { key: 'expiresAt', header: 'Expires', render: (u) => u.expiresAt ? new Date(u.expiresAt).toLocaleDateString() : 'Never' },
-          { key: 'createdAt', header: 'Created', hideOnMobile: true, render: (u) => new Date(u.createdAt).toLocaleDateString() },
+          }, sortValue: (u) => { const expired = u.expiresAt && new Date(u.expiresAt) < new Date(); return !u.isActive ? 2 : expired ? 1 : 0; }},
+          { key: 'expiresAt', header: 'Expires', sortable: true, render: (u) => u.expiresAt ? new Date(u.expiresAt).toLocaleDateString() : 'Never', sortValue: (u) => u.expiresAt ? new Date(u.expiresAt).getTime() : Infinity },
+          { key: 'createdAt', header: 'Created', sortable: true, hideOnMobile: true, render: (u) => new Date(u.createdAt).toLocaleDateString(), sortValue: (u) => new Date(u.createdAt).getTime() },
           { key: 'shortUrls', header: 'TinyURLs', hideOnMobile: true, render: (u) => {
             if (!u.shortUrls || u.shortUrls.length === 0) return '-';
             return (

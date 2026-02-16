@@ -27,6 +27,7 @@ import {
   XCircle,
   ChevronRight,
   ImagePlus,
+  ExternalLink,
   type LucideIcon,
 } from 'lucide-react';
 
@@ -115,13 +116,74 @@ const GATEWAY_FIELDS: Record<string, { key: string; label: string; type?: string
 
 const GATEWAY_ORDER = ['stripe', 'paypal', 'authorize_net', 'cashapp', 'zelle', 'venmo'];
 
-const GATEWAY_META: Record<string, { name: string; color: string; accent: string }> = {
-  stripe: { name: 'Stripe', color: 'from-violet-500/20 to-indigo-500/10', accent: 'text-violet-400' },
-  paypal: { name: 'PayPal', color: 'from-blue-500/20 to-sky-500/10', accent: 'text-blue-400' },
-  authorize_net: { name: 'Authorize.net', color: 'from-orange-500/20 to-amber-500/10', accent: 'text-orange-400' },
-  cashapp: { name: 'Cash App', color: 'from-emerald-500/20 to-green-500/10', accent: 'text-emerald-400' },
-  zelle: { name: 'Zelle', color: 'from-purple-500/20 to-fuchsia-500/10', accent: 'text-purple-400' },
-  venmo: { name: 'Venmo', color: 'from-cyan-500/20 to-teal-500/10', accent: 'text-cyan-400' },
+const GATEWAY_META: Record<string, { name: string; color: string; accent: string; docsUrl: string; docsLabel: string }> = {
+  stripe: { name: 'Stripe', color: 'from-violet-500/20 to-indigo-500/10', accent: 'text-violet-400', docsUrl: 'https://docs.stripe.com/keys', docsLabel: 'Stripe API Keys Guide' },
+  paypal: { name: 'PayPal', color: 'from-blue-500/20 to-sky-500/10', accent: 'text-blue-400', docsUrl: 'https://developer.paypal.com/api/rest/', docsLabel: 'PayPal REST API Setup' },
+  authorize_net: { name: 'Authorize.net', color: 'from-orange-500/20 to-amber-500/10', accent: 'text-orange-400', docsUrl: 'https://developer.authorize.net/api/reference/index.html', docsLabel: 'Authorize.net API Reference' },
+  cashapp: { name: 'Cash App', color: 'from-emerald-500/20 to-green-500/10', accent: 'text-emerald-400', docsUrl: 'https://developer.squareup.com/docs/cash-app-pay', docsLabel: 'Cash App Pay via Square Docs' },
+  zelle: { name: 'Zelle', color: 'from-purple-500/20 to-fuchsia-500/10', accent: 'text-purple-400', docsUrl: 'https://www.zellepay.com/get-started', docsLabel: 'Zelle Setup Guide' },
+  venmo: { name: 'Venmo', color: 'from-cyan-500/20 to-teal-500/10', accent: 'text-cyan-400', docsUrl: 'https://developer.paypal.com/docs/checkout/pay-with-venmo/', docsLabel: 'Venmo via Braintree/PayPal Docs' },
+};
+
+// ─── Gateway SVG logos ────────────────────────────────
+function StripeLogo({ className }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="currentColor">
+      <path d="M13.976 9.15c-2.172-.806-3.356-1.426-3.356-2.409 0-.831.683-1.305 1.901-1.305 2.227 0 4.515.858 6.09 1.631l.89-5.494C18.252.975 15.697 0 12.165 0 9.667 0 7.589.654 6.104 1.872 4.56 3.147 3.757 4.992 3.757 7.218c0 4.039 2.467 5.76 6.476 7.219 2.585.92 3.445 1.574 3.445 2.583 0 .98-.84 1.545-2.354 1.545-1.875 0-4.965-.921-6.99-2.109l-.9 5.555C5.175 22.99 8.385 24 11.714 24c2.641 0 4.843-.624 6.328-1.813 1.664-1.305 2.525-3.236 2.525-5.732 0-4.128-2.524-5.851-6.591-7.305z" />
+    </svg>
+  );
+}
+
+function PayPalLogo({ className }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="currentColor">
+      <path d="M7.076 21.337H2.47a.641.641 0 0 1-.633-.74L4.944.901C5.026.382 5.474 0 5.998 0h7.46c2.57 0 4.578.543 5.69 1.81 1.01 1.15 1.304 2.42 1.012 4.287-.023.143-.047.288-.077.437-.983 5.05-4.349 6.797-8.647 6.797h-2.19c-.524 0-.968.382-1.05.9l-1.12 7.106zm14.146-14.42a3.35 3.35 0 0 0-.607-.541c-.013.076-.026.175-.041.254-.93 4.778-4.005 7.201-9.138 7.201h-2.19a.563.563 0 0 0-.556.479l-1.187 7.527h-.506l-.24 1.516a.56.56 0 0 0 .554.647h3.882c.46 0 .85-.334.922-.788.06-.26.76-4.852.816-5.09a.932.932 0 0 1 .923-.788h.58c3.76 0 6.705-1.528 7.565-5.946.36-1.847.174-3.388-.777-4.471z" />
+    </svg>
+  );
+}
+
+function AuthorizeNetLogo({ className }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="2" y="4" width="20" height="16" rx="3" />
+      <path d="M2 10h20" />
+      <path d="M6 15h4" />
+      <path d="M14 15h4" />
+    </svg>
+  );
+}
+
+function CashAppLogo({ className }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="currentColor">
+      <path d="M23.59 3.47A5.1 5.1 0 0 0 20.53.41C19.36 0 18.05 0 15.44 0H8.56C5.95 0 4.64 0 3.47.41A5.1 5.1 0 0 0 .41 3.47C0 4.64 0 5.95 0 8.56v6.88c0 2.61 0 3.92.41 5.09a5.1 5.1 0 0 0 3.06 3.06c1.17.41 2.48.41 5.09.41h6.88c2.61 0 3.92 0 5.09-.41a5.1 5.1 0 0 0 3.06-3.06c.41-1.17.41-2.48.41-5.09V8.56c0-2.61 0-3.92-.41-5.09zM17.42 7.67l-.89.89a.37.37 0 0 1-.48.04 5.02 5.02 0 0 0-2.76-.83c-1.18 0-2.01.53-2.01 1.32 0 .86.86 1.17 2.27 1.63 2.14.7 3.84 1.5 3.84 3.75 0 2.37-1.89 3.98-4.75 4.17l-.37 1.15a.37.37 0 0 1-.35.26h-1.7a.37.37 0 0 1-.36-.47l.35-1.1c-1.33-.24-2.47-.8-3.22-1.47a.37.37 0 0 1-.02-.53l.94-.94a.37.37 0 0 1 .49-.03 5.32 5.32 0 0 0 3.18 1.1c1.4 0 2.2-.62 2.2-1.48 0-.9-.77-1.27-2.42-1.81-2.04-.68-3.57-1.53-3.57-3.54 0-2.13 1.69-3.73 4.37-3.98l.35-1.11a.37.37 0 0 1 .35-.26h1.7c.25 0 .42.23.36.47l-.33 1.05c1.12.22 2.04.65 2.72 1.17a.37.37 0 0 1 .05.53z" />
+    </svg>
+  );
+}
+
+function ZelleLogo({ className }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="currentColor">
+      <path d="M13.559 24h-2.841a.483.483 0 0 1-.483-.483v-6.628H4.559A.559.559 0 0 1 4 16.33v-2.262a.97.97 0 0 1 .195-.583L14 1.165V4.63H8.89l-4.27 5.426h5.616V4.262c0-.266.216-.482.483-.482h2.84c.267 0 .483.216.483.482v6.628h5.4a.558.558 0 0 1 .558.559v2.264a.968.968 0 0 1-.196.582L10 22.835V19.37h5.144l4.236-5.426h-5.616v5.573a.483.483 0 0 1-.205.396z" />
+    </svg>
+  );
+}
+
+function VenmoLogo({ className }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="currentColor">
+      <path d="M21.559 0c.904 1.49 1.311 3.03 1.311 4.97 0 6.19-5.286 14.24-9.576 19.89H5.764L2.13.78l7.15-.67 1.9 15.28c1.77-2.88 3.95-7.41 3.95-10.52 0-1.85-.316-3.11-.812-4.12L21.559 0z" />
+    </svg>
+  );
+}
+
+const GatewayLogo: Record<string, React.FC<{ className?: string }>> = {
+  stripe: StripeLogo,
+  paypal: PayPalLogo,
+  authorize_net: AuthorizeNetLogo,
+  cashapp: CashAppLogo,
+  zelle: ZelleLogo,
+  venmo: VenmoLogo,
 };
 
 // ─── Helper: section panel wrapper ─────────────────────
@@ -655,12 +717,21 @@ export default function SettingsPage() {
                           'flex h-9 w-9 items-center justify-center rounded-lg bg-gradient-to-br',
                           meta.color,
                         )}>
-                          <CreditCard className={cn('h-4 w-4', meta.accent)} />
+                          {(() => { const Logo = GatewayLogo[provider]; return Logo ? <Logo className={cn('h-5 w-5', meta.accent)} /> : <CreditCard className={cn('h-4 w-4', meta.accent)} />; })()}
                         </div>
                         <div>
                           <h3 className="font-heading text-sm font-semibold text-foreground/90">{gw.displayName || meta.name}</h3>
-                          {gw.isEnabled && (
+                          {gw.isEnabled ? (
                             <span className="font-mono text-xs text-emerald-400">Configured</span>
+                          ) : (
+                            <a
+                              href={meta.docsUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="inline-flex items-center gap-1 font-mono text-xs text-muted-foreground hover:text-cyan-400 transition-colors"
+                            >
+                              Setup guide <ExternalLink className="h-3 w-3" />
+                            </a>
                           )}
                         </div>
                       </div>
@@ -686,6 +757,15 @@ export default function SettingsPage() {
                     {/* Config fields */}
                     {gw.isEnabled && (
                       <div className="border-t border-border/20 px-5 pb-5 pt-4">
+                        <a
+                          href={meta.docsUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-1.5 mb-4 text-xs font-medium text-cyan-400 hover:text-cyan-300 transition-colors"
+                        >
+                          <ExternalLink className="h-3.5 w-3.5" />
+                          {meta.docsLabel}
+                        </a>
                         <div className="grid grid-cols-1 gap-x-5 gap-y-3 sm:grid-cols-2">
                           {fields.map((field) => (
                             <div key={field.key}>

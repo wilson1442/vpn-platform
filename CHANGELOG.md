@@ -1,5 +1,20 @@
 # Changelog
 
+## v0.0.6
+
+- Add Payment Gateways to Settings page (Stripe, PayPal, Authorize.net, Cash App, Zelle, Venmo)
+- Payment gateway cards with real brand SVG logos and setup documentation links
+- Auto-seed default gateways on first load
+- Add database migration for PaymentGateway table
+- Fix nginx reverse proxy routing for payment-gateways and checkout endpoints
+- Rename admin dashboard title to dynamic site name (e.g. "MyVPN Dashboard")
+- Rearrange dashboard layout: bandwidth chart above servers, main server card alongside VPN nodes
+- Add search and sortable columns to Users and Resellers tables
+- SMTP settings UI and PayPal integration
+- Full UI redesign with "Midnight Protocol" cyber-noir theme
+- Dynamic favicon from uploaded logo
+- Fix Next.js standalone build missing static files after updates
+
 ## v0.0.5
 
 - Add User Logs page for admin and reseller panels (view create, update, extend, delete actions)
