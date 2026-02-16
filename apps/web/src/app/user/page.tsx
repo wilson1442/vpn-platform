@@ -25,7 +25,7 @@ export default function UserDashboard() {
           Your account has expired. VPN connections are disabled. Please contact your administrator to extend your account.
         </div>
       )}
-      <h1 className="mb-6 text-3xl font-bold">Dashboard</h1>
+      <h1 className="mb-6 text-2xl font-bold">Dashboard</h1>
       <div className="grid gap-4 md:grid-cols-3">
         <Card>
           <CardHeader className="pb-2">

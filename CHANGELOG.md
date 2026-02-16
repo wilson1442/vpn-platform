@@ -1,5 +1,16 @@
 # Changelog
 
+## v0.0.5
+
+- Add User Logs page for admin and reseller panels (view create, update, extend, delete actions)
+- New API endpoint for querying user-related audit logs with pagination
+- Reseller-scoped user logs (resellers only see their own actions)
+- Filter buttons for log type (Created, Updated, Extended, Deleted)
+- Add session sync, connections page, max connections editing, and tier-based features
+- Add license grace period with 7-day countdown and panel lockout
+- Change license check-in interval from 24h to 6h
+- Fix license status display and SDK hasFeature crash
+
 ## v0.0.4
 
 - Add LicenseForge licensing system with SDK-based validation and feature gating

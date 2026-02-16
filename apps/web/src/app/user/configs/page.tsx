@@ -132,7 +132,7 @@ export default function ConfigsPage() {
     <div>
       <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-3xl font-bold">VPN Profiles</h1>
+          <h1 className="text-2xl font-bold">VPN Profiles</h1>
           <p className="mt-1 text-muted-foreground">
             Download a profile for any server below and import it into your OpenVPN client.
           </p>
@@ -147,14 +147,14 @@ export default function ConfigsPage() {
       </div>
 
       <div className="mb-6 space-y-3">
-        <div className="rounded-lg border border-blue-200 bg-blue-50 p-4 dark:border-blue-900 dark:bg-blue-950/30">
-          <p className="text-sm text-blue-800 dark:text-blue-300">
+        <div className="rounded-xl border border-indigo-500/20 bg-indigo-500/5 p-5 backdrop-blur-sm">
+          <p className="text-sm">
             <strong>Authentication:</strong> When connecting, use your platform username and password.
             No separate certificates are needed.
           </p>
         </div>
-        <div className="rounded-lg border border-green-200 bg-green-50 p-4 dark:border-green-900 dark:bg-green-950/30">
-          <p className="text-sm text-green-800 dark:text-green-300">
+        <div className="rounded-xl border border-emerald-500/20 bg-emerald-500/5 p-5 backdrop-blur-sm">
+          <p className="text-sm">
             <strong>Import via URL:</strong> Most OpenVPN apps support importing profiles via URL.
             Click &quot;Copy URL&quot; next to a server and paste it in your app&apos;s URL import field.
           </p>

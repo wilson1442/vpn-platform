@@ -89,7 +89,7 @@ export default function ConnectionsPage() {
     <div>
       <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-3xl font-bold">Live Connections</h1>
+          <h1 className="text-2xl font-bold">Live Connections</h1>
           <p className="text-sm text-muted-foreground mt-1">
             {sessions.length} active connection{sessions.length !== 1 ? 's' : ''}
             {' \u00b7 '}Auto-refreshes every 15s
@@ -97,7 +97,7 @@ export default function ConnectionsPage() {
         </div>
         <div className="flex items-center gap-2">
           <select
-            className="rounded-md border bg-background px-3 py-2 text-sm"
+            className="rounded-lg border border-input bg-background/50 px-3 py-2 text-sm"
             value={filterNode}
             onChange={(e) => setFilterNode(e.target.value)}
           >

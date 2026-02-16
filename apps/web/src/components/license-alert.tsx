@@ -38,17 +38,16 @@ export function LicenseAlert() {
     }
   };
 
-  // Only render when locked
   if (!user || loading || !locked) return null;
 
   const isAdmin = user.role === 'ADMIN';
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/95 backdrop-blur-sm">
-      <div className="mx-4 w-full max-w-md space-y-6 rounded-lg border bg-card p-8 shadow-lg">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/95 backdrop-blur-md">
+      <div className="mx-4 w-full max-w-md space-y-6 rounded-2xl border border-border/50 bg-card/80 p-8 shadow-2xl shadow-black/20 backdrop-blur-xl">
         <div className="text-center">
-          <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-red-500/10">
-            <svg className="h-8 w-8 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+          <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-red-500/10">
+            <svg className="h-8 w-8 text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
             </svg>
           </div>
@@ -70,7 +69,7 @@ export function LicenseAlert() {
               onKeyDown={(e) => { if (e.key === 'Enter') handleActivate(); }}
             />
             {error && (
-              <p className="text-sm text-red-500">{error}</p>
+              <p className="text-sm text-red-400">{error}</p>
             )}
             <Button onClick={handleActivate} disabled={activating || !licenseKey.trim()} className="w-full">
               {activating ? 'Activating...' : 'Activate License'}
@@ -79,8 +78,8 @@ export function LicenseAlert() {
         )}
 
         {success && (
-          <div className="rounded-md bg-green-500/10 px-4 py-3 text-center">
-            <p className="text-sm font-medium text-green-500">License activated successfully. Unlocking...</p>
+          <div className="rounded-xl bg-emerald-500/10 px-4 py-3 text-center">
+            <p className="text-sm font-medium text-emerald-400">License activated successfully. Unlocking...</p>
           </div>
         )}
       </div>

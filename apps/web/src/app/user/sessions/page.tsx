@@ -17,7 +17,7 @@ export default function SessionsPage() {
 
   return (
     <div>
-      <h1 className="mb-6 text-3xl font-bold">Sessions</h1>
+      <h1 className="mb-6 text-2xl font-bold">Sessions</h1>
       <DataTable
         columns={[
           { key: 'commonName', header: 'Common Name' },

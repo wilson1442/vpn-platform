@@ -20,13 +20,11 @@ export function ProfilePage() {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    // Validate file type
     if (!file.type.startsWith('image/')) {
       setError('Please select an image file');
       return;
     }
 
-    // Validate file size (max 2MB)
     if (file.size > 2 * 1024 * 1024) {
       setError('Image must be less than 2MB');
       return;
@@ -44,7 +42,6 @@ export function ProfilePage() {
       setError(err.message || 'Failed to upload avatar');
     } finally {
       setUploading(false);
-      // Reset input so the same file can be re-selected
       if (fileInputRef.current) fileInputRef.current.value = '';
     }
   };
@@ -54,7 +51,7 @@ export function ProfilePage() {
       <h1 className="text-2xl font-bold">Profile</h1>
 
       {/* Avatar Section */}
-      <div className="rounded-lg border bg-card p-6">
+      <div className="rounded-xl border border-border/40 bg-card/30 p-6 backdrop-blur-sm">
         <h2 className="mb-4 text-lg font-semibold">Avatar</h2>
         <div className="flex items-center gap-6">
           <UserAvatar
@@ -67,12 +64,12 @@ export function ProfilePage() {
             <button
               onClick={() => fileInputRef.current?.click()}
               disabled={uploading}
-              className="inline-flex items-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
+              className="inline-flex items-center rounded-lg bg-gradient-to-r from-indigo-500 to-blue-500 px-4 py-2 text-sm font-medium text-white shadow-lg shadow-indigo-500/20 transition-all hover:shadow-indigo-500/40 hover:brightness-110 disabled:opacity-50"
             >
               {uploading ? 'Uploading...' : 'Upload new avatar'}
             </button>
             <p className="text-xs text-muted-foreground">JPG, PNG or GIF. Max 2MB.</p>
-            {error && <p className="text-xs text-red-500">{error}</p>}
+            {error && <p className="text-xs text-red-400">{error}</p>}
           </div>
           <input
             ref={fileInputRef}
@@ -85,20 +82,20 @@ export function ProfilePage() {
       </div>
 
       {/* Account Info Section */}
-      <div className="rounded-lg border bg-card p-6">
+      <div className="rounded-xl border border-border/40 bg-card/30 p-6 backdrop-blur-sm">
         <h2 className="mb-4 text-lg font-semibold">Account Information</h2>
-        <dl className="space-y-3">
-          <div className="flex justify-between">
+        <dl className="space-y-4">
+          <div className="flex items-center justify-between rounded-lg bg-accent/20 px-4 py-3">
             <dt className="text-sm text-muted-foreground">Username</dt>
             <dd className="text-sm font-medium">{user.username}</dd>
           </div>
           {user.email && (
-            <div className="flex justify-between">
+            <div className="flex items-center justify-between rounded-lg bg-accent/20 px-4 py-3">
               <dt className="text-sm text-muted-foreground">Email</dt>
               <dd className="text-sm font-medium">{user.email}</dd>
             </div>
           )}
-          <div className="flex justify-between">
+          <div className="flex items-center justify-between rounded-lg bg-accent/20 px-4 py-3">
             <dt className="text-sm text-muted-foreground">Role</dt>
             <dd className="text-sm font-medium capitalize">{user.role.toLowerCase()}</dd>
           </div>

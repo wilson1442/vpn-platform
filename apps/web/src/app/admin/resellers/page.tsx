@@ -92,14 +92,14 @@ export default function ResellersPage() {
   return (
     <div>
       <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <h1 className="text-3xl font-bold">Resellers</h1>
+        <h1 className="text-2xl font-bold">Resellers</h1>
         <Button className="w-full sm:w-auto" onClick={() => setShowCreate(!showCreate)}>
           {showCreate ? 'Cancel' : 'Create Reseller'}
         </Button>
       </div>
 
       {showCreate && (
-        <form onSubmit={handleCreate} className="mb-6 space-y-3 rounded-lg border p-4">
+        <form onSubmit={handleCreate} className="mb-6 space-y-3 rounded-xl border border-border/40 bg-card/30 p-5 backdrop-blur-sm">
           <Input placeholder="User ID" value={form.userId} onChange={(e) => setForm({ ...form, userId: e.target.value })} required />
           <Input placeholder="Name" value={form.companyName} onChange={(e) => setForm({ ...form, companyName: e.target.value })} required />
           {user?.role === 'ADMIN' && (

@@ -10,10 +10,10 @@ export function Toaster() {
       {toasts.map((toast) => (
         <div
           key={toast.id}
-          className={`rounded-lg border px-4 py-3 shadow-lg transition-all ${
+          className={`animate-slide-in rounded-xl border px-4 py-3 shadow-xl backdrop-blur-xl transition-all ${
             toast.variant === 'destructive'
-              ? 'border-destructive bg-destructive text-destructive-foreground'
-              : 'border-border bg-background text-foreground'
+              ? 'border-red-500/30 bg-red-500/10 text-red-400'
+              : 'border-border/50 bg-background/95 text-foreground'
           }`}
         >
           {toast.title && <p className="font-semibold">{toast.title}</p>}

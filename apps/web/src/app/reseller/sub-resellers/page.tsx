@@ -39,10 +39,10 @@ export default function SubResellersPage() {
 
   return (
     <div>
-      <h1 className="mb-6 text-3xl font-bold">Sub-Resellers</h1>
+      <h1 className="mb-6 text-2xl font-bold">Sub-Resellers</h1>
 
       {editingId && (
-        <form onSubmit={handleEdit} className="mb-6 space-y-3 rounded-lg border border-blue-200 bg-blue-50/50 p-4 dark:border-blue-900 dark:bg-blue-950/20">
+        <form onSubmit={handleEdit} className="mb-6 space-y-3 rounded-xl border border-indigo-500/20 bg-indigo-500/5 p-5 backdrop-blur-sm">
           <h3 className="font-semibold">Edit Sub-Reseller</h3>
           <Input placeholder="Company Name" value={editForm.companyName} onChange={(e) => setEditForm({ ...editForm, companyName: e.target.value })} required />
           <Input placeholder="Max Depth" type="number" value={editForm.maxDepth} onChange={(e) => setEditForm({ ...editForm, maxDepth: e.target.value })} />

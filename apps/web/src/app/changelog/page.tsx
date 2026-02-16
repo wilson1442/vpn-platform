@@ -40,7 +40,7 @@ export default function ChangelogPage() {
           }
           if (line.startsWith('# ')) {
             return (
-              <h1 key={i} className="mb-6 text-3xl font-bold text-foreground">
+              <h1 key={i} className="mb-6 text-2xl font-bold text-foreground">
                 {line.replace('# ', '')}
               </h1>
             );

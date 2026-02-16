@@ -29,7 +29,7 @@ export function UserAvatar({ userId, avatarPath, username, size = 'md', classNam
         src={`${API_URL}/profile/avatar/${userId}?v=${encodeURIComponent(avatarPath)}`}
         alt={username || 'Avatar'}
         className={cn(
-          'rounded-full object-cover',
+          'rounded-full object-cover ring-2 ring-border/40',
           sizeClasses[size],
           className,
         )}
@@ -40,7 +40,7 @@ export function UserAvatar({ userId, avatarPath, username, size = 'md', classNam
   return (
     <div
       className={cn(
-        'flex items-center justify-center rounded-full bg-primary/10 font-medium text-primary',
+        'flex items-center justify-center rounded-full bg-gradient-to-br from-indigo-500/20 to-blue-500/20 font-medium text-indigo-400 ring-2 ring-border/40',
         sizeClasses[size],
         className,
       )}

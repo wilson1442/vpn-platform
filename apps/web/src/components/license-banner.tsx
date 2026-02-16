@@ -37,21 +37,23 @@ export function LicenseBanner() {
   const isAdmin = user.role === 'ADMIN';
 
   return (
-    <div className="flex items-center justify-between gap-3 bg-amber-500/10 border-b border-amber-500/20 px-4 py-2 text-sm">
-      <div className="flex items-center gap-2">
-        <svg className="h-4 w-4 shrink-0 text-amber-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-          <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4.5c-.77-.833-2.694-.833-3.464 0L3.34 16.5c-.77.833.192 2.5 1.732 2.5z" />
-        </svg>
-        <span className="text-amber-600 dark:text-amber-400">
+    <div className="flex items-center justify-between gap-3 border-b border-amber-500/20 bg-amber-500/5 px-4 py-2.5 text-sm backdrop-blur-sm">
+      <div className="flex items-center gap-2.5">
+        <div className="flex h-5 w-5 items-center justify-center rounded-full bg-amber-500/15">
+          <svg className="h-3 w-3 text-amber-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4.5c-.77-.833-2.694-.833-3.464 0L3.34 16.5c-.77.833.192 2.5 1.732 2.5z" />
+          </svg>
+        </div>
+        <span className="text-amber-400">
           License invalid &mdash; <strong>{countdown}</strong> remaining before panel lockout
         </span>
       </div>
       {isAdmin ? (
-        <Link href="/admin/settings" className="shrink-0 text-amber-600 hover:text-amber-500 dark:text-amber-400 dark:hover:text-amber-300 font-medium underline underline-offset-2">
+        <Link href="/admin/settings" className="shrink-0 rounded-md bg-amber-500/10 px-3 py-1 text-xs font-medium text-amber-400 transition-colors hover:bg-amber-500/20">
           Go to Settings
         </Link>
       ) : (
-        <span className="shrink-0 text-amber-600/70 dark:text-amber-400/70">Contact your administrator</span>
+        <span className="shrink-0 text-amber-400/60 text-xs">Contact your administrator</span>
       )}
     </div>
   );

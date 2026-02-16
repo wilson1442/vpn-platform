@@ -27,16 +27,20 @@ export function DesktopHeader() {
   };
 
   return (
-    <header className="hidden h-14 shrink-0 items-center justify-end border-b bg-background px-4 md:flex md:px-6">
+    <header className="hidden h-16 shrink-0 items-center justify-end border-b border-border/40 bg-background/50 backdrop-blur-sm px-6 md:flex">
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <button className="flex items-center gap-2 rounded-full outline-none ring-offset-background focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2">
+          <button className="flex items-center gap-3 rounded-full px-2 py-1.5 outline-none ring-offset-background transition-all duration-200 hover:bg-accent/50 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2">
             <UserAvatar
               userId={user.id}
               avatarPath={user.avatarPath}
               username={user.username}
               size="sm"
             />
+            <span className="text-sm font-medium">{user.username}</span>
+            <svg className="h-4 w-4 text-muted-foreground" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+            </svg>
           </button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="w-56">
@@ -55,7 +59,7 @@ export function DesktopHeader() {
             </Link>
           </DropdownMenuItem>
           <DropdownMenuSeparator />
-          <DropdownMenuItem onClick={handleLogout} className="cursor-pointer">
+          <DropdownMenuItem onClick={handleLogout} className="cursor-pointer text-red-400 focus:text-red-400">
             Log out
           </DropdownMenuItem>
         </DropdownMenuContent>

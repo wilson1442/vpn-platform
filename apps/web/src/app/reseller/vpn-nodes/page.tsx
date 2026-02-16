@@ -55,10 +55,10 @@ export default function ResellerVpnNodesPage() {
 
   return (
     <div>
-      <h1 className="mb-6 text-3xl font-bold">VPN Nodes</h1>
+      <h1 className="mb-6 text-2xl font-bold">VPN Nodes</h1>
 
       {editingId && (
-        <form onSubmit={handleEdit} className="mb-6 space-y-3 rounded-lg border border-blue-200 bg-blue-50/50 p-4 dark:border-blue-900 dark:bg-blue-950/20">
+        <form onSubmit={handleEdit} className="mb-6 space-y-3 rounded-xl border border-indigo-500/20 bg-indigo-500/5 p-5 backdrop-blur-sm">
           <h3 className="font-semibold">Edit Node</h3>
           <Input placeholder="Node Name" value={editForm.name} onChange={(e) => setEditForm({ ...editForm, name: e.target.value })} required />
           <Input placeholder="Hostname" value={editForm.hostname} onChange={(e) => setEditForm({ ...editForm, hostname: e.target.value })} required />

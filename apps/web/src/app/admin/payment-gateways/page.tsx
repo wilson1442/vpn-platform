@@ -134,7 +134,7 @@ export default function PaymentGatewaysPage() {
   return (
     <div>
       <div className="mb-4 flex items-center justify-between">
-        <h1 className="text-3xl font-bold">Payment Gateways</h1>
+        <h1 className="text-2xl font-bold">Payment Gateways</h1>
       </div>
 
       <p className="mb-6 text-sm text-muted-foreground">

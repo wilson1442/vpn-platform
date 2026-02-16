@@ -35,7 +35,7 @@ function formatTime(iso: string): string {
 
 export function BandwidthChart({ data }: { data: BandwidthPoint[] }) {
   return (
-    <Card>
+    <Card className="overflow-hidden">
       <CardHeader className="pb-2">
         <CardTitle className="text-sm font-medium text-muted-foreground">
           Aggregate VPN Bandwidth
@@ -47,41 +47,59 @@ export function BandwidthChart({ data }: { data: BandwidthPoint[] }) {
             <AreaChart data={data} margin={{ top: 5, right: 20, left: 10, bottom: 5 }}>
               <defs>
                 <linearGradient id="rxGrad" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.3} />
-                  <stop offset="95%" stopColor="#3b82f6" stopOpacity={0} />
+                  <stop offset="5%" stopColor="#6366f1" stopOpacity={0.3} />
+                  <stop offset="95%" stopColor="#6366f1" stopOpacity={0} />
                 </linearGradient>
                 <linearGradient id="txGrad" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#22c55e" stopOpacity={0.3} />
-                  <stop offset="95%" stopColor="#22c55e" stopOpacity={0} />
+                  <stop offset="5%" stopColor="#06b6d4" stopOpacity={0.3} />
+                  <stop offset="95%" stopColor="#06b6d4" stopOpacity={0} />
                 </linearGradient>
               </defs>
-              <CartesianGrid strokeDasharray="3 3" className="stroke-muted/30" />
+              <CartesianGrid strokeDasharray="3 3" className="stroke-border/20" />
               <XAxis
                 dataKey="time"
                 tickFormatter={formatTime}
                 className="text-xs"
-                tick={{ fontSize: 11 }}
+                tick={{ fontSize: 11, fill: 'hsl(215 20% 55%)' }}
+                stroke="hsl(216 34% 17%)"
               />
-              <YAxis tickFormatter={formatBytes} className="text-xs" tick={{ fontSize: 11 }} width={70} />
+              <YAxis
+                tickFormatter={formatBytes}
+                className="text-xs"
+                tick={{ fontSize: 11, fill: 'hsl(215 20% 55%)' }}
+                width={70}
+                stroke="hsl(216 34% 17%)"
+              />
               <Tooltip
+                contentStyle={{
+                  backgroundColor: 'hsl(224 71% 4% / 0.95)',
+                  border: '1px solid hsl(216 34% 17%)',
+                  borderRadius: '0.75rem',
+                  backdropFilter: 'blur(8px)',
+                }}
+                labelStyle={{ color: 'hsl(215 20% 55%)' }}
+                itemStyle={{ color: 'hsl(213 31% 91%)' }}
                 formatter={(value: any, name: any) => [
                   formatBytes(Number(value)),
                   name === 'rxBps' ? 'Download (RX)' : 'Upload (TX)',
                 ]}
                 labelFormatter={(label: any) => formatTime(String(label))}
               />
-              <Legend formatter={(value) => (value === 'rxBps' ? 'Download (RX)' : 'Upload (TX)')} />
+              <Legend
+                formatter={(value) => (value === 'rxBps' ? 'Download (RX)' : 'Upload (TX)')}
+                wrapperStyle={{ fontSize: '12px' }}
+              />
               <Area
                 type="monotone"
                 dataKey="rxBps"
-                stroke="#3b82f6"
+                stroke="#6366f1"
                 fill="url(#rxGrad)"
                 strokeWidth={2}
               />
               <Area
                 type="monotone"
                 dataKey="txBps"
-                stroke="#22c55e"
+                stroke="#06b6d4"
                 fill="url(#txGrad)"
                 strokeWidth={2}
               />

@@ -40,7 +40,7 @@ export default function BillingPage() {
   return (
     <div>
       <div className="mb-4 flex items-center justify-between">
-        <h1 className="text-3xl font-bold">Billing</h1>
+        <h1 className="text-2xl font-bold">Billing</h1>
         <Button onClick={() => setShowCreate(!showCreate)}>
           {showCreate ? 'Cancel' : 'Create Invoice'}
         </Button>

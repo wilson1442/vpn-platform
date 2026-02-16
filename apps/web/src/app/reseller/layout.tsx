@@ -24,13 +24,25 @@ export default function ResellerLayout({ children }: { children: React.ReactNode
   }, [user, loading, router]);
 
   if (loading || licenseLoading || !user) {
-    return <div className="flex h-screen items-center justify-center">Loading...</div>;
+    return (
+      <div className="flex h-screen items-center justify-center bg-background">
+        <div className="flex flex-col items-center gap-3">
+          <div className="h-8 w-8 animate-spin rounded-full border-2 border-indigo-500 border-t-transparent" />
+          <span className="text-sm text-muted-foreground">Loading...</span>
+        </div>
+      </div>
+    );
   }
 
   if (!hasFeature('resellers')) {
     return (
-      <div className="flex h-screen items-center justify-center">
+      <div className="flex h-screen items-center justify-center bg-background">
         <div className="text-center">
+          <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-red-500/10">
+            <svg className="h-7 w-7 text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" />
+            </svg>
+          </div>
           <h1 className="mb-2 text-2xl font-bold">Feature Not Available</h1>
           <p className="text-muted-foreground">
             The reseller feature requires a VPN Pro license. Please contact your administrator.
@@ -42,7 +54,7 @@ export default function ResellerLayout({ children }: { children: React.ReactNode
 
   return (
     <MobileNavProvider>
-      <div className="flex h-screen flex-col">
+      <div className="flex h-screen flex-col bg-background">
         <ImpersonationBanner />
         <LicenseBanner />
         <div className="flex flex-1 flex-col overflow-hidden md:flex-row">
@@ -50,7 +62,7 @@ export default function ResellerLayout({ children }: { children: React.ReactNode
           <div className="flex flex-1 flex-col overflow-hidden">
             <MobileHeader />
             <DesktopHeader />
-            <main className="flex-1 overflow-auto p-4 md:p-6">{children}</main>
+            <main className="flex-1 overflow-auto bg-dots p-4 md:p-6 lg:p-8">{children}</main>
           </div>
         </div>
         <LicenseAlert />

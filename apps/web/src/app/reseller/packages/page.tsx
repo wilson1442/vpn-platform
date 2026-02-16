@@ -130,10 +130,10 @@ export default function ResellerPackagesPage() {
   ) => (
     <form
       onSubmit={onSubmit}
-      className={`mb-6 space-y-4 rounded-lg border p-4 ${
+      className={`mb-6 space-y-4 ${
         highlight
-          ? 'border-blue-200 bg-blue-50/50 dark:border-blue-900 dark:bg-blue-950/20'
-          : ''
+          ? 'rounded-xl border border-indigo-500/20 bg-indigo-500/5 p-5 backdrop-blur-sm'
+          : 'rounded-xl border border-border/40 bg-card/30 p-5 backdrop-blur-sm'
       }`}
     >
       {highlight && <h3 className="font-semibold text-lg">Edit Package</h3>}
@@ -233,7 +233,7 @@ export default function ResellerPackagesPage() {
   return (
     <div>
       <div className="mb-4 flex items-center justify-between">
-        <h1 className="text-3xl font-bold">My Packages</h1>
+        <h1 className="text-2xl font-bold">My Packages</h1>
         <Button onClick={() => setShowCreate(!showCreate)}>
           {showCreate ? 'Cancel' : 'Create Package'}
         </Button>

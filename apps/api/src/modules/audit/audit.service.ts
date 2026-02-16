@@ -41,4 +41,28 @@ export class AuditService {
       take: filters.limit || 100,
     });
   }
+
+  async findUserLogs(filters: { actorId?: string; limit?: number; offset?: number }) {
+    const where = {
+      OR: [
+        { action: { startsWith: 'POST /users' } },
+        { action: { startsWith: 'PATCH /users' } },
+        { action: { startsWith: 'DELETE /users' } },
+      ],
+      ...(filters.actorId && { actorId: filters.actorId }),
+    };
+
+    const [data, total] = await Promise.all([
+      this.prisma.auditLog.findMany({
+        where,
+        include: { actor: { select: { email: true, username: true } } },
+        orderBy: { createdAt: 'desc' },
+        take: filters.limit || 50,
+        skip: filters.offset || 0,
+      }),
+      this.prisma.auditLog.count({ where }),
+    ]);
+
+    return { data, total };
+  }
 }

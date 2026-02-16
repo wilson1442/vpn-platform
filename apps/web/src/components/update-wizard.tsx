@@ -173,11 +173,11 @@ export function UpdateWizard({ open, onOpenChange }: UpdateWizardProps) {
                 <div className="flex flex-col items-center">
                   <div
                     className={cn(
-                      'flex h-8 w-8 items-center justify-center rounded-full border-2 text-sm font-medium transition-colors',
-                      isDone && 'border-green-500 bg-green-500 text-white',
-                      isActive && !isDone && 'border-primary bg-primary text-primary-foreground',
-                      !isActive && !isDone && 'border-muted-foreground/30 text-muted-foreground',
-                      status === 'error' && 'border-red-500 bg-red-500 text-white',
+                      'flex h-8 w-8 items-center justify-center rounded-full border-2 text-sm font-medium transition-all duration-300',
+                      isDone && 'border-emerald-500 bg-emerald-500 text-white shadow-lg shadow-emerald-500/20',
+                      isActive && !isDone && 'border-indigo-500 bg-indigo-500 text-white shadow-lg shadow-indigo-500/20',
+                      !isActive && !isDone && 'border-border/40 text-muted-foreground',
+                      status === 'error' && 'border-red-500 bg-red-500 text-white shadow-lg shadow-red-500/20',
                     )}
                   >
                     {isDone ? (
@@ -202,8 +202,8 @@ export function UpdateWizard({ open, onOpenChange }: UpdateWizardProps) {
                 {index < steps.length - 1 && (
                   <div
                     className={cn(
-                      'mx-2 h-0.5 w-12',
-                      isPast || isDone ? 'bg-green-500' : 'bg-muted-foreground/30',
+                      'mx-2 h-0.5 w-12 rounded-full transition-colors duration-300',
+                      isPast || isDone ? 'bg-emerald-500' : 'bg-border/30',
                     )}
                   />
                 )}
@@ -214,7 +214,7 @@ export function UpdateWizard({ open, onOpenChange }: UpdateWizardProps) {
 
         {/* Error message */}
         {error && (
-          <div className="rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-800 dark:border-red-800 dark:bg-red-950/20 dark:text-red-400">
+          <div className="rounded-xl border border-red-500/20 bg-red-500/5 p-3 text-sm text-red-400">
             {error}
           </div>
         )}
@@ -234,36 +234,33 @@ export function UpdateWizard({ open, onOpenChange }: UpdateWizardProps) {
 
               {stepStatus.check === 'loading' && (
                 <div className="flex flex-col items-center gap-2 py-8">
-                  <svg className="h-8 w-8 animate-spin text-primary" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
-                  </svg>
+                  <div className="h-8 w-8 animate-spin rounded-full border-2 border-indigo-500 border-t-transparent" />
                   <p className="text-muted-foreground">Checking for updates...</p>
                 </div>
               )}
 
               {updateInfo && (
                 <div className="space-y-4">
-                  <div className="grid grid-cols-2 gap-4 rounded-md border p-4">
+                  <div className="grid grid-cols-2 gap-4 rounded-xl border border-border/40 bg-card/30 p-4">
                     <div>
                       <p className="text-sm text-muted-foreground">Current Version</p>
                       <p className="text-lg font-semibold">v{updateInfo.currentVersion}</p>
                       <p className="text-xs text-muted-foreground">
-                        Commit: <code>{updateInfo.currentCommit.slice(0, 8)}</code>
+                        Commit: <code className="rounded bg-accent/30 px-1">{updateInfo.currentCommit.slice(0, 8)}</code>
                       </p>
                     </div>
                     <div>
                       <p className="text-sm text-muted-foreground">Latest Version</p>
                       <p className="text-lg font-semibold">v{updateInfo.latestVersion}</p>
                       <p className="text-xs text-muted-foreground">
-                        Commit: <code>{updateInfo.remoteCommit.slice(0, 8)}</code>
+                        Commit: <code className="rounded bg-accent/30 px-1">{updateInfo.remoteCommit.slice(0, 8)}</code>
                       </p>
                     </div>
                   </div>
 
                   {isUpToDate && (
-                    <div className="rounded-md border border-green-200 bg-green-50 p-4 text-center dark:border-green-800 dark:bg-green-950/20">
-                      <p className="font-medium text-green-800 dark:text-green-400">
+                    <div className="rounded-xl border border-emerald-500/20 bg-emerald-500/5 p-4 text-center">
+                      <p className="font-medium text-emerald-400">
                         Your system is up to date!
                       </p>
                     </div>
@@ -271,8 +268,8 @@ export function UpdateWizard({ open, onOpenChange }: UpdateWizardProps) {
 
                   {hasUpdates && (
                     <>
-                      <div className="rounded-md border border-blue-200 bg-blue-50 p-4 dark:border-blue-800 dark:bg-blue-950/20">
-                        <p className="font-medium text-blue-800 dark:text-blue-400">
+                      <div className="rounded-xl border border-indigo-500/20 bg-indigo-500/5 p-4">
+                        <p className="font-medium text-indigo-400">
                           {updateInfo.behindBy} update{updateInfo.behindBy > 1 ? 's' : ''} available
                         </p>
                       </div>
@@ -280,7 +277,7 @@ export function UpdateWizard({ open, onOpenChange }: UpdateWizardProps) {
                       {updateInfo.releaseNotes.length > 0 && (
                         <div>
                           <p className="mb-2 text-sm font-medium">Release Notes:</p>
-                          <ul className="max-h-32 space-y-1 overflow-y-auto rounded-md border p-3 text-sm">
+                          <ul className="max-h-32 space-y-1 overflow-y-auto rounded-xl border border-border/40 bg-card/30 p-3 text-sm">
                             {updateInfo.releaseNotes.map((note, i) => (
                               <li key={i} className="text-muted-foreground">
                                 &bull; {note}
@@ -323,17 +320,14 @@ export function UpdateWizard({ open, onOpenChange }: UpdateWizardProps) {
 
               {stepStatus.download === 'loading' && (
                 <div className="flex flex-col items-center gap-2 py-8">
-                  <svg className="h-8 w-8 animate-spin text-primary" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
-                  </svg>
+                  <div className="h-8 w-8 animate-spin rounded-full border-2 border-indigo-500 border-t-transparent" />
                   <p className="text-muted-foreground">Downloading update...</p>
                 </div>
               )}
 
               {stepStatus.download === 'done' && (
-                <div className="rounded-md border border-green-200 bg-green-50 p-4 text-center dark:border-green-800 dark:bg-green-950/20">
-                  <p className="font-medium text-green-800 dark:text-green-400">
+                <div className="rounded-xl border border-emerald-500/20 bg-emerald-500/5 p-4 text-center">
+                  <p className="font-medium text-emerald-400">
                     Update downloaded successfully!
                   </p>
                 </div>
@@ -353,7 +347,7 @@ export function UpdateWizard({ open, onOpenChange }: UpdateWizardProps) {
             <div className="space-y-4">
               {stepStatus.backup === 'idle' && (
                 <div className="text-center">
-                  <div className="mb-4 rounded-md border border-yellow-200 bg-yellow-50 p-3 text-sm text-yellow-800 dark:border-yellow-800 dark:bg-yellow-950/20 dark:text-yellow-400">
+                  <div className="mb-4 rounded-xl border border-amber-500/20 bg-amber-500/5 p-3 text-sm text-amber-400">
                     <strong>Recommended:</strong> Create a database backup before installing the update.
                     This allows you to restore your data if anything goes wrong.
                   </div>
@@ -363,17 +357,14 @@ export function UpdateWizard({ open, onOpenChange }: UpdateWizardProps) {
 
               {stepStatus.backup === 'loading' && (
                 <div className="flex flex-col items-center gap-2 py-8">
-                  <svg className="h-8 w-8 animate-spin text-primary" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
-                  </svg>
+                  <div className="h-8 w-8 animate-spin rounded-full border-2 border-indigo-500 border-t-transparent" />
                   <p className="text-muted-foreground">Creating database backup...</p>
                 </div>
               )}
 
               {stepStatus.backup === 'done' && (
-                <div className="rounded-md border border-green-200 bg-green-50 p-4 text-center dark:border-green-800 dark:bg-green-950/20">
-                  <p className="font-medium text-green-800 dark:text-green-400">
+                <div className="rounded-xl border border-emerald-500/20 bg-emerald-500/5 p-4 text-center">
+                  <p className="font-medium text-emerald-400">
                     Backup created and downloaded successfully!
                   </p>
                 </div>
@@ -393,7 +384,7 @@ export function UpdateWizard({ open, onOpenChange }: UpdateWizardProps) {
             <div className="space-y-4">
               {stepStatus.install === 'idle' && (
                 <div className="text-center">
-                  <div className="mb-4 rounded-md border border-yellow-200 bg-yellow-50 p-3 text-sm text-yellow-800 dark:border-yellow-800 dark:bg-yellow-950/20 dark:text-yellow-400">
+                  <div className="mb-4 rounded-xl border border-amber-500/20 bg-amber-500/5 p-3 text-sm text-amber-400">
                     <strong>Warning:</strong> Installing the update will run database migrations and rebuild the application.
                     The server may need to be restarted afterward.
                   </div>
@@ -403,10 +394,7 @@ export function UpdateWizard({ open, onOpenChange }: UpdateWizardProps) {
 
               {stepStatus.install === 'loading' && (
                 <div className="flex flex-col items-center gap-2 py-8">
-                  <svg className="h-8 w-8 animate-spin text-primary" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
-                  </svg>
+                  <div className="h-8 w-8 animate-spin rounded-full border-2 border-indigo-500 border-t-transparent" />
                   <p className="text-muted-foreground">Installing update...</p>
                   <p className="text-xs text-muted-foreground">This may take several minutes</p>
                 </div>
@@ -415,16 +403,16 @@ export function UpdateWizard({ open, onOpenChange }: UpdateWizardProps) {
               {(stepStatus.install === 'done' || stepStatus.install === 'error') && (
                 <div className="space-y-4">
                   {stepStatus.install === 'done' && (
-                    <div className="rounded-md border border-green-200 bg-green-50 p-4 dark:border-green-800 dark:bg-green-950/20">
-                      <p className="font-medium text-green-800 dark:text-green-400">
+                    <div className="rounded-xl border border-emerald-500/20 bg-emerald-500/5 p-4">
+                      <p className="font-medium text-emerald-400">
                         Update installed successfully!
                       </p>
                       {newVersion && (
-                        <p className="mt-1 text-sm text-green-700 dark:text-green-500">
+                        <p className="mt-1 text-sm text-emerald-400/80">
                           New version: v{newVersion}
                         </p>
                       )}
-                      <p className="mt-2 text-sm text-green-700 dark:text-green-500">
+                      <p className="mt-2 text-sm text-emerald-400/80">
                         Please restart the server to apply all changes.
                       </p>
                     </div>
@@ -433,7 +421,7 @@ export function UpdateWizard({ open, onOpenChange }: UpdateWizardProps) {
                   {installOutput && (
                     <div>
                       <p className="mb-2 text-sm font-medium">Installation Output:</p>
-                      <pre className="max-h-48 overflow-auto rounded-md bg-muted p-3 text-xs">
+                      <pre className="max-h-48 overflow-auto rounded-xl border border-border/40 bg-card/30 p-3 text-xs font-mono">
                         {installOutput}
                       </pre>
                     </div>
@@ -453,7 +441,7 @@ export function UpdateWizard({ open, onOpenChange }: UpdateWizardProps) {
         </div>
 
         {/* Navigation */}
-        <div className="flex justify-between border-t pt-4">
+        <div className="flex justify-between border-t border-border/40 pt-4">
           <Button
             variant="ghost"
             onClick={() => {

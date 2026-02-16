@@ -1,6 +1,6 @@
 import { Controller, Delete, Get, Query } from '@nestjs/common';
 import { Role } from '@prisma/client';
-import { Roles } from '../../common/decorators';
+import { CurrentUser, Roles } from '../../common/decorators';
 import { AuditService } from './audit.service';
 
 @Controller('audit-logs')
@@ -24,6 +24,20 @@ export class AuditController {
       action,
       actorId,
       limit: limit ? parseInt(limit, 10) : undefined,
+    });
+  }
+
+  @Get('user-logs')
+  @Roles(Role.ADMIN, Role.RESELLER)
+  findUserLogs(
+    @CurrentUser() user: any,
+    @Query('limit') limit?: string,
+    @Query('offset') offset?: string,
+  ) {
+    return this.audit.findUserLogs({
+      actorId: user.role === Role.RESELLER ? user.sub : undefined,
+      limit: limit ? parseInt(limit, 10) : undefined,
+      offset: offset ? parseInt(offset, 10) : undefined,
     });
   }
 }

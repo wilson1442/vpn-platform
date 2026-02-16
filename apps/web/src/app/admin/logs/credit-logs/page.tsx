@@ -34,7 +34,7 @@ export default function AdminCreditLogsPage() {
 
   return (
     <div>
-      <h1 className="mb-4 text-3xl font-bold">Credit Logs</h1>
+      <h1 className="mb-4 text-2xl font-bold">Credit Logs</h1>
 
       <div className="mb-4 flex gap-2">
         {['', 'ADD', 'DEDUCT', 'REFUND', 'TRANSFER'].map((t) => (

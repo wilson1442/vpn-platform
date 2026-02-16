@@ -12,7 +12,6 @@ export function Gauge({ value, label, color }: GaugeProps) {
   const strokeWidth = 8;
   const cx = 50;
   const cy = 50;
-  // Semicircle from 180° to 0° (π to 0)
   const startAngle = Math.PI;
   const endAngle = 0;
   const sweep = startAngle - endAngle;
@@ -35,51 +34,35 @@ export function Gauge({ value, label, color }: GaugeProps) {
           d={describeArc(startAngle, endAngle)}
           fill="none"
           stroke="currentColor"
-          className="text-muted/30"
+          className="text-border/30"
           strokeWidth={strokeWidth}
           strokeLinecap="round"
         />
-        {/* Filled arc */}
+        {/* Filled arc with glow */}
         {clampedValue > 0 && (
-          <path
-            d={describeArc(startAngle, filledAngle)}
-            fill="none"
-            stroke={color}
-            strokeWidth={strokeWidth}
-            strokeLinecap="round"
-          />
+          <>
+            <path
+              d={describeArc(startAngle, filledAngle)}
+              fill="none"
+              stroke={color}
+              strokeWidth={strokeWidth}
+              strokeLinecap="round"
+              style={{ filter: `drop-shadow(0 0 6px ${color}40)` }}
+            />
+          </>
         )}
-        {/* Range labels */}
-        <text
-          x={cx - radius - 2}
-          y={cy + 12}
-          textAnchor="middle"
-          className="fill-muted-foreground"
-          fontSize="8"
-        >
-          0
-        </text>
-        <text
-          x={cx + radius + 2}
-          y={cy + 12}
-          textAnchor="middle"
-          className="fill-muted-foreground"
-          fontSize="8"
-        >
-          100
-        </text>
         {/* Value text */}
         <text
           x={cx}
           y={cy - 2}
           textAnchor="middle"
-          className="fill-foreground text-sm font-semibold"
+          className="fill-foreground text-sm font-bold"
           fontSize="14"
         >
           {clampedValue}%
         </text>
       </svg>
-      <span className="text-xs text-muted-foreground">{label}</span>
+      <span className="text-xs font-medium text-muted-foreground">{label}</span>
     </div>
   );
 }

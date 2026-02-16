@@ -78,18 +78,18 @@ export default function ResellerUsersPage() {
   return (
     <div>
       <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <h1 className="text-3xl font-bold">Users</h1>
+        <h1 className="text-2xl font-bold">Users</h1>
         <Button className="w-full sm:w-auto" onClick={() => setShowCreate(!showCreate)}>
           {showCreate ? 'Cancel' : 'Create User'}
         </Button>
       </div>
 
       {showCreate && (
-        <form onSubmit={handleCreate} className="mb-6 space-y-3 rounded-lg border p-4">
+        <form onSubmit={handleCreate} className="mb-6 space-y-3 rounded-xl border border-border/40 bg-card/30 p-5 backdrop-blur-sm">
           <Input placeholder="Email" type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} required />
           <Input placeholder="Password" type="password" value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} required />
           <label className="block text-sm font-medium">Package (optional)</label>
-          <select className="w-full rounded-md border p-2 text-sm" value={form.packageId} onChange={(e) => setForm({ ...form, packageId: e.target.value })}>
+          <select className="w-full rounded-lg border border-input bg-background/50 p-2 text-sm" value={form.packageId} onChange={(e) => setForm({ ...form, packageId: e.target.value })}>
             <option value="">No package (manual expiration)</option>
             {packages.map((p: any) => (
               <option key={p.id} value={p.id}>{p.name} ({p.duration})</option>
@@ -111,7 +111,7 @@ export default function ResellerUsersPage() {
       )}
 
       {editingId && (
-        <form onSubmit={handleEdit} className="mb-6 space-y-3 rounded-lg border border-blue-200 bg-blue-50/50 p-4 dark:border-blue-900 dark:bg-blue-950/20">
+        <form onSubmit={handleEdit} className="mb-6 space-y-3 rounded-xl border border-indigo-500/20 bg-indigo-500/5 p-5 backdrop-blur-sm">
           <h3 className="font-semibold">Edit User</h3>
           <Input placeholder="Email" type="email" value={editForm.email} onChange={(e) => setEditForm({ ...editForm, email: e.target.value })} required />
           <Input placeholder="New Password (leave blank to keep)" type="password" value={editForm.password} onChange={(e) => setEditForm({ ...editForm, password: e.target.value })} />
@@ -129,9 +129,9 @@ export default function ResellerUsersPage() {
       )}
 
       {extendingId && (
-        <form onSubmit={handleExtend} className="mb-6 space-y-3 rounded-lg border border-green-200 bg-green-50/50 p-4 dark:border-green-900 dark:bg-green-950/20">
+        <form onSubmit={handleExtend} className="mb-6 space-y-3 rounded-xl border border-emerald-500/20 bg-emerald-500/5 p-5 backdrop-blur-sm">
           <h3 className="font-semibold">Extend User Package</h3>
-          <select className="w-full rounded-md border p-2 text-sm" value={extendPackageId} onChange={(e) => setExtendPackageId(e.target.value)} required>
+          <select className="w-full rounded-lg border border-input bg-background/50 p-2 text-sm" value={extendPackageId} onChange={(e) => setExtendPackageId(e.target.value)} required>
             <option value="">Select a package</option>
             {packages.map((p: any) => (
               <option key={p.id} value={p.id}>{p.name} ({p.duration})</option>

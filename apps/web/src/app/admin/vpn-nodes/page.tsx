@@ -128,8 +128,8 @@ export default function VpnNodesPage() {
   };
 
   const getInstallBadge = (status: string | null) => {
-    if (status === 'installed') return <Badge variant="default" className="bg-green-600">Installed</Badge>;
-    if (status === 'installing') return <Badge variant="secondary" className="animate-pulse bg-yellow-500 text-white">Installing...</Badge>;
+    if (status === 'installed') return <Badge variant="default">Installed</Badge>;
+    if (status === 'installing') return <Badge variant="warning" className="animate-pulse">Installing...</Badge>;
     if (status === 'failed') return <Badge variant="destructive">Failed</Badge>;
     return <Badge variant="outline">Not Installed</Badge>;
   };
@@ -236,14 +236,14 @@ export default function VpnNodesPage() {
   return (
     <div>
       <div className="mb-4 flex items-center justify-between">
-        <h1 className="text-3xl font-bold">VPN Nodes</h1>
+        <h1 className="text-2xl font-bold">VPN Nodes</h1>
         <Button onClick={() => setShowCreate(!showCreate)}>
           {showCreate ? 'Cancel' : 'Add Node'}
         </Button>
       </div>
 
       {showCreate && (
-        <form onSubmit={handleCreate} className="mb-6 space-y-3 rounded-lg border p-4">
+        <form onSubmit={handleCreate} className="mb-6 space-y-3 rounded-xl border border-border/40 bg-card/30 p-5 backdrop-blur-sm">
           <Input placeholder="Node Name" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} required />
           <Input placeholder="Hostname" value={form.hostname} onChange={(e) => setForm({ ...form, hostname: e.target.value })} required />
           <div className="grid grid-cols-4 gap-2">
@@ -302,7 +302,7 @@ export default function VpnNodesPage() {
       {/* SSH Credentials Dialog */}
       {sshDialog && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-          <div className="w-full max-w-md rounded-lg bg-white p-6 shadow-xl dark:bg-gray-900">
+          <div className="w-full max-w-md rounded-xl border border-border/50 bg-background/95 p-6 shadow-xl backdrop-blur-xl">
             <h3 className="mb-4 text-lg font-semibold">
               {actionLabel(sshDialog.action)} — {sshDialog.nodeName}
             </h3>
@@ -372,7 +372,7 @@ export default function VpnNodesPage() {
                 <div>
                   <label className="mb-1 block text-sm font-medium">Private Key</label>
                   <textarea
-                    className="w-full rounded-md border p-2 font-mono text-xs dark:border-gray-700 dark:bg-gray-800"
+                    className="w-full rounded-lg border border-input bg-background/50 p-2 font-mono text-xs"
                     rows={6}
                     placeholder="-----BEGIN OPENSSH PRIVATE KEY-----"
                     value={sshForm.privateKey}
@@ -397,17 +397,17 @@ export default function VpnNodesPage() {
       {/* Terminal Log Viewer */}
       {terminal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-          <div className="flex h-[80vh] w-full max-w-3xl flex-col rounded-lg bg-gray-950 shadow-xl">
-            <div className="flex items-center justify-between border-b border-gray-800 px-4 py-3">
+          <div className="flex h-[80vh] w-full max-w-3xl flex-col rounded-xl border border-border/40 bg-background shadow-xl">
+            <div className="flex items-center justify-between border-b border-border/40 px-4 py-3">
               <div className="flex items-center gap-3">
                 <span className="font-mono text-sm text-gray-300">
                   {actionLabel(terminal.action)} Logs
                 </span>
                 {terminal.status === 'running' && (
-                  <Badge variant="secondary" className="animate-pulse bg-yellow-500 text-white">Running...</Badge>
+                  <Badge variant="warning" className="animate-pulse">Running...</Badge>
                 )}
                 {terminal.status === 'success' && (
-                  <Badge variant="default" className="bg-green-600">Success</Badge>
+                  <Badge variant="default">Success</Badge>
                 )}
                 {terminal.status === 'failed' && (
                   <Badge variant="destructive">Failed</Badge>

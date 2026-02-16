@@ -74,14 +74,14 @@ export default function CreditPackagesPage() {
   return (
     <div>
       <div className="mb-4 flex items-center justify-between">
-        <h1 className="text-3xl font-bold">Credit Packages</h1>
+        <h1 className="text-2xl font-bold">Credit Packages</h1>
         <Button onClick={() => setShowCreate(!showCreate)}>
           {showCreate ? 'Cancel' : 'Create Package'}
         </Button>
       </div>
 
       {showCreate && (
-        <form onSubmit={handleCreate} className="mb-6 space-y-3 rounded-lg border p-4">
+        <form onSubmit={handleCreate} className="mb-6 space-y-3 rounded-xl border border-border/40 bg-card/30 p-5 backdrop-blur-sm">
           <div>
             <label className="mb-1 block text-sm font-medium">Package Name</label>
             <Input placeholder="e.g. Starter Pack" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} required />
