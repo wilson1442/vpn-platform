@@ -97,22 +97,25 @@ export default function AdminUserLogsPage() {
       {/* Data Table Card */}
       <div className="rounded-xl border border-border/20 bg-card/40 backdrop-blur-sm overflow-hidden">
         <DataTable
+          searchable
+          searchKeys={['action', 'targetId', 'actor', 'ipAddress', 'metadata']}
+          searchPlaceholder="Search logs by user, actor, IP..."
           columns={[
-            { key: 'action', header: 'Action', render: (r) => {
+            { key: 'action', header: 'Action', sortable: true, render: (r) => {
               const type = classifyAction(r.action);
               return (
                 <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${ACTION_BADGE_COLORS[type] || ACTION_BADGE_COLORS.unknown}`}>
                   {ACTION_LABELS[type]}
                 </span>
               );
-            }},
-            { key: 'targetId', header: 'User', render: (r) => (
+            }, sortValue: (r) => classifyAction(r.action) },
+            { key: 'targetId', header: 'User', sortable: true, render: (r) => (
               <span className="font-body text-sm">{r.metadata?.username || r.targetId || '—'}</span>
-            )},
-            { key: 'actor', header: 'Actor', render: (r) => (
+            ), sortValue: (r) => r.metadata?.username || r.targetId || '' },
+            { key: 'actor', header: 'Actor', sortable: true, render: (r) => (
               <span className="font-body text-sm">{r.actor?.username || r.actor?.email || '—'}</span>
-            )},
-            { key: 'ipAddress', header: 'IP Address', render: (r) => (
+            ), sortValue: (r) => r.actor?.username || r.actor?.email || '' },
+            { key: 'ipAddress', header: 'IP Address', sortable: true, render: (r) => (
               <span className="font-mono text-xs text-cyan-400/70">{r.ipAddress || '—'}</span>
             )},
             { key: 'details', header: 'Details', render: (r) => {
@@ -124,9 +127,9 @@ export default function AdminUserLogsPage() {
                 ? <span className="font-body text-sm">{parts.join(', ')}</span>
                 : <span className="text-muted-foreground">—</span>;
             }},
-            { key: 'createdAt', header: 'Date', render: (r) => (
+            { key: 'createdAt', header: 'Date', sortable: true, render: (r) => (
               <span className="font-mono text-xs text-muted-foreground">{new Date(r.createdAt).toLocaleString()}</span>
-            )},
+            ), sortValue: (r) => new Date(r.createdAt).getTime() },
           ]}
           data={filtered}
         />

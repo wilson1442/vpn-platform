@@ -145,12 +145,15 @@ export default function CreditPackagesPage() {
 
       <div className="rounded-xl border border-border/20 bg-card/40 backdrop-blur-sm p-5">
         <DataTable
+          searchable
+          searchKeys={['name', 'description']}
+          searchPlaceholder="Search credit packages..."
           columns={[
-            { key: 'name', header: 'Name', render: (p) => <span className="font-heading font-semibold text-sm">{p.name}</span> },
-            { key: 'credits', header: 'Credits', render: (p) => <span className="font-mono text-xs">{p.credits}</span> },
-            { key: 'price', header: 'Price', render: (p) => <span className="font-mono text-xs">${(p.price / 100).toFixed(2)}</span> },
+            { key: 'name', header: 'Name', sortable: true, render: (p) => <span className="font-heading font-semibold text-sm">{p.name}</span> },
+            { key: 'credits', header: 'Credits', sortable: true, render: (p) => <span className="font-mono text-xs">{p.credits}</span> },
+            { key: 'price', header: 'Price', sortable: true, render: (p) => <span className="font-mono text-xs">${(p.price / 100).toFixed(2)}</span> },
             { key: 'description', header: 'Description', render: (p) => <span className="font-body text-sm text-muted-foreground">{p.description || '—'}</span> },
-            { key: 'createdAt', header: 'Created', render: (p) => <span className="font-mono text-xs text-cyan-400/70">{new Date(p.createdAt).toLocaleDateString()}</span> },
+            { key: 'createdAt', header: 'Created', sortable: true, render: (p) => <span className="font-mono text-xs text-cyan-400/70">{new Date(p.createdAt).toLocaleDateString()}</span>, sortValue: (p) => new Date(p.createdAt).getTime() },
             { key: 'actions', header: 'Actions', render: (p) => (
               <div className="flex gap-2">
                 <Button variant="outline" size="sm" className="border-border/20 hover:border-cyan-500/30 hover:text-cyan-400" onClick={() => startEdit(p)}>Edit</Button>

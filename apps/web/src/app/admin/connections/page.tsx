@@ -121,52 +121,67 @@ export default function ConnectionsPage() {
       </div>
 
       <DataTable
+        searchable
+        searchKeys={['commonName', 'realAddress', 'vpnNode']}
+        searchPlaceholder="Search by username, IP, server..."
         columns={[
           {
             key: 'commonName',
             header: 'Username',
+            sortable: true,
             render: (s) => <span className="font-medium">{s.commonName}</span>,
           },
           {
             key: 'email',
             header: 'Email',
+            sortable: true,
             hideOnMobile: true,
             render: (s) => <span className="text-muted-foreground">{s.user.email}</span>,
+            sortValue: (s) => s.user.email,
           },
           {
             key: 'realAddress',
             header: 'IP Address',
+            sortable: true,
             render: (s) => <code className="font-mono text-xs text-cyan-400/70">{s.realAddress}</code>,
           },
           {
             key: 'vpnNode',
             header: 'Server',
+            sortable: true,
             render: (s) => (
               <Badge variant="outline" className="border-border/30 bg-white/[0.02] font-mono text-xs">
                 {s.vpnNode.name}
               </Badge>
             ),
+            sortValue: (s) => s.vpnNode.name,
           },
           {
             key: 'connectedAt',
             header: 'Connected Since',
+            sortable: true,
             hideOnMobile: true,
             render: (s) => <span className="font-mono text-xs text-muted-foreground">{new Date(s.connectedAt).toLocaleString()}</span>,
+            sortValue: (s) => new Date(s.connectedAt).getTime(),
           },
           {
             key: 'duration',
             header: 'Duration',
+            sortable: true,
             render: (s) => <span className="font-mono text-xs text-emerald-400">{formatDuration(s.connectedAt)}</span>,
+            sortValue: (s) => new Date(s.connectedAt).getTime(),
           },
           {
             key: 'bytesReceived',
             header: 'Recv',
+            sortable: true,
             hideOnMobile: true,
             render: (s) => <span className="font-mono text-xs">{formatBytes(s.bytesReceived)}</span>,
           },
           {
             key: 'bytesSent',
             header: 'Sent',
+            sortable: true,
             hideOnMobile: true,
             render: (s) => <span className="font-mono text-xs">{formatBytes(s.bytesSent)}</span>,
           },

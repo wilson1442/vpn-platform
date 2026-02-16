@@ -462,29 +462,32 @@ export default function VpnNodesPage() {
       )}
 
       <DataTable
+        searchable
+        searchKeys={['name', 'hostname']}
+        searchPlaceholder="Search nodes by name, hostname..."
         columns={[
-          { key: 'name', header: 'Name', render: (n) => (
+          { key: 'name', header: 'Name', sortable: true, render: (n) => (
             <span className="font-heading font-semibold text-sm">{n.name}</span>
           )},
-          { key: 'hostname', header: 'Hostname', render: (n) => (
+          { key: 'hostname', header: 'Hostname', sortable: true, render: (n) => (
             <span className="font-mono text-xs text-cyan-400/70">{n.hostname}</span>
           )},
-          { key: 'port', header: 'Port', render: (n) => (
+          { key: 'port', header: 'Port', sortable: true, render: (n) => (
             <span className="font-mono text-xs">{n.port}</span>
           )},
-          { key: 'status', header: 'Status', render: (n) => (
+          { key: 'status', header: 'Status', sortable: true, render: (n) => (
             isNodeOnline(n)
               ? <Badge className="border-emerald-500/30 bg-emerald-500/10 text-emerald-400">Online</Badge>
               : <Badge className="border-rose-500/30 bg-rose-500/10 text-rose-400">Offline</Badge>
-          )},
-          { key: 'installStatus', header: 'Install', render: (n) => getInstallBadge(n.installStatus) },
-          { key: 'crlVersion', header: 'CRL Version', render: (n) => (
+          ), sortValue: (n) => isNodeOnline(n) ? 0 : 1 },
+          { key: 'installStatus', header: 'Install', sortable: true, render: (n) => getInstallBadge(n.installStatus), sortValue: (n) => n.installStatus || '' },
+          { key: 'crlVersion', header: 'CRL Version', sortable: true, render: (n) => (
             <span className="font-mono text-xs">{n.crlVersion}</span>
           )},
           { key: 'agentToken', header: 'Agent Token', render: (n) => <code className="font-mono text-xs text-cyan-400/70">{n.agentToken?.substring(0, 8)}...</code> },
-          { key: 'lastHeartbeatAt', header: 'Last Heartbeat', render: (n) => (
+          { key: 'lastHeartbeatAt', header: 'Last Heartbeat', sortable: true, render: (n) => (
             <span className="font-mono text-xs">{n.lastHeartbeatAt ? new Date(n.lastHeartbeatAt).toLocaleString() : 'Never'}</span>
-          )},
+          ), sortValue: (n) => n.lastHeartbeatAt ? new Date(n.lastHeartbeatAt).getTime() : 0 },
           { key: 'actions', header: 'Actions', render: (n) => (
             <div className="flex gap-1">
               <Button variant="outline" size="sm" onClick={() => startEdit(n)} className="hover:text-cyan-400 hover:bg-cyan-500/10 border-border/30 text-xs">Edit</Button>

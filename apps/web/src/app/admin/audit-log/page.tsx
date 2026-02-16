@@ -105,28 +105,31 @@ export default function AuditLogPage() {
       {/* Data Table Card */}
       <div className="rounded-xl border border-border/20 bg-card/40 backdrop-blur-sm overflow-hidden">
         <DataTable
+          searchable
+          searchKeys={['actor', 'action', 'targetType', 'targetId', 'ipAddress']}
+          searchPlaceholder="Search logs by actor, action, IP..."
           columns={[
-            { key: 'actor', header: 'Actor', render: (l) => (
+            { key: 'actor', header: 'Actor', sortable: true, render: (l) => (
               <span className="font-body text-sm">{l.actor?.email || 'System'}</span>
-            )},
-            { key: 'action', header: 'Action', render: (l) => (
+            ), sortValue: (l) => l.actor?.email || 'System' },
+            { key: 'action', header: 'Action', sortable: true, render: (l) => (
               <span className="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium bg-cyan-500/15 text-cyan-400 border border-cyan-500/20">
                 {l.action}
               </span>
             )},
-            { key: 'targetType', header: 'Target Type', render: (l) => (
+            { key: 'targetType', header: 'Target Type', sortable: true, render: (l) => (
               <span className="font-body text-sm">{l.targetType}</span>
             )},
             { key: 'targetId', header: 'Target ID', render: (l) => l.targetId
               ? <code className="font-mono text-xs text-cyan-400/70">{l.targetId.substring(0, 8)}</code>
               : <span className="text-muted-foreground">-</span>
             },
-            { key: 'ipAddress', header: 'IP Address', render: (l) => (
+            { key: 'ipAddress', header: 'IP Address', sortable: true, render: (l) => (
               <span className="font-mono text-xs text-cyan-400/70">{l.ipAddress}</span>
             )},
-            { key: 'createdAt', header: 'Time', render: (l) => (
+            { key: 'createdAt', header: 'Time', sortable: true, render: (l) => (
               <span className="font-mono text-xs text-muted-foreground">{new Date(l.createdAt).toLocaleString()}</span>
-            )},
+            ), sortValue: (l) => new Date(l.createdAt).getTime() },
           ]}
           data={logs}
         />

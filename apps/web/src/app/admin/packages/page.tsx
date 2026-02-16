@@ -286,10 +286,14 @@ export default function PackagesPage() {
         )}
 
       <DataTable
+        searchable
+        searchKeys={['name', 'duration', 'description']}
+        searchPlaceholder="Search packages..."
         columns={[
           {
             key: 'name',
             header: 'Name',
+            sortable: true,
             render: (p) => (
               <span className="font-heading font-semibold text-sm">
                 {p.name}
@@ -299,6 +303,7 @@ export default function PackagesPage() {
           {
             key: 'duration',
             header: 'Duration',
+            sortable: true,
             render: (p) => (
               <span className="font-body text-sm">
                 {DURATION_LABELS[p.duration] || p.duration || '-'}
@@ -308,6 +313,7 @@ export default function PackagesPage() {
           {
             key: 'priceMonthly',
             header: 'Price',
+            sortable: true,
             render: (p) => (
               <span className="font-mono text-xs text-emerald-400">
                 {formatDollars(p.priceMonthly)}
@@ -317,6 +323,7 @@ export default function PackagesPage() {
           {
             key: 'creditCost',
             header: 'Credit Cost',
+            sortable: true,
             render: (p) => (
               <span className="font-mono text-xs">
                 {p.creditCost || 0}
@@ -326,6 +333,7 @@ export default function PackagesPage() {
           {
             key: 'maxConnections',
             header: 'Max Connections',
+            sortable: true,
             render: (p) => (
               <span className="font-mono text-xs">
                 {p.maxConnections}
@@ -335,6 +343,7 @@ export default function PackagesPage() {
           {
             key: 'maxDevices',
             header: 'Max Devices',
+            sortable: true,
             render: (p) => (
               <span className="font-mono text-xs">
                 {p.maxDevices}

@@ -67,11 +67,14 @@ export default function BillingPage() {
       )}
 
       <DataTable
+        searchable
+        searchKeys={['id', 'reseller', 'status']}
+        searchPlaceholder="Search invoices..."
         columns={[
           { key: 'id', header: 'ID', render: (i) => <code className="font-mono text-xs text-cyan-400/70">{i.id.substring(0, 8)}</code> },
-          { key: 'reseller', header: 'Reseller', render: (i) => i.reseller?.user?.email || i.resellerId },
-          { key: 'amountCents', header: 'Amount', render: (i) => <span className="font-mono font-medium">${(i.amountCents / 100).toFixed(2)}</span> },
-          { key: 'status', header: 'Status', render: (i) => (
+          { key: 'reseller', header: 'Reseller', sortable: true, render: (i) => i.reseller?.user?.email || i.resellerId, sortValue: (i) => i.reseller?.user?.email || i.resellerId },
+          { key: 'amountCents', header: 'Amount', sortable: true, render: (i) => <span className="font-mono font-medium">${(i.amountCents / 100).toFixed(2)}</span> },
+          { key: 'status', header: 'Status', sortable: true, render: (i) => (
             <Badge
               variant={i.status === 'PAID' ? 'default' : i.status === 'CANCELLED' ? 'destructive' : 'secondary'}
               className={i.status === 'PAID' ? 'bg-emerald-500/15 text-emerald-400 border-emerald-500/20' : i.status === 'CANCELLED' ? 'bg-rose-500/15 text-rose-400 border-rose-500/20' : 'bg-amber-500/15 text-amber-400 border-amber-500/20'}
@@ -91,7 +94,7 @@ export default function BillingPage() {
               </Button>
             </div>
           )},
-          { key: 'createdAt', header: 'Created', render: (i) => <span className="font-mono text-xs text-muted-foreground">{new Date(i.createdAt).toLocaleDateString()}</span> },
+          { key: 'createdAt', header: 'Created', sortable: true, render: (i) => <span className="font-mono text-xs text-muted-foreground">{new Date(i.createdAt).toLocaleDateString()}</span>, sortValue: (i) => new Date(i.createdAt).getTime() },
         ]}
         data={invoices}
       />

@@ -78,27 +78,30 @@ export default function AdminCreditLogsPage() {
       {/* Data Table Card */}
       <div className="rounded-xl border border-border/20 bg-card/40 backdrop-blur-sm overflow-hidden">
         <DataTable
+          searchable
+          searchKeys={['reseller', 'type', 'description']}
+          searchPlaceholder="Search credit logs..."
           columns={[
-            { key: 'reseller', header: 'Reseller', render: (r) => (
+            { key: 'reseller', header: 'Reseller', sortable: true, render: (r) => (
               <span className="font-body text-sm">{r.reseller?.companyName ?? '—'}</span>
-            )},
-            { key: 'type', header: 'Type', render: (r) => (
+            ), sortValue: (r) => r.reseller?.companyName || '' },
+            { key: 'type', header: 'Type', sortable: true, render: (r) => (
               <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${TYPE_BADGE_COLORS[r.type] || 'bg-zinc-500/15 text-zinc-400 border border-zinc-500/20'}`}>
                 {r.type}
               </span>
             )},
-            { key: 'amount', header: 'Amount', render: (r) => (
+            { key: 'amount', header: 'Amount', sortable: true, render: (r) => (
               <span className="font-mono text-xs">{r.amount}</span>
             )},
-            { key: 'balanceAfter', header: 'Balance After', render: (r) => (
+            { key: 'balanceAfter', header: 'Balance After', sortable: true, render: (r) => (
               <span className="font-mono text-xs">{r.balanceAfter}</span>
             )},
             { key: 'description', header: 'Description', render: (r) => (
               <span className="font-body text-sm">{r.description || '—'}</span>
             )},
-            { key: 'createdAt', header: 'Date', render: (r) => (
+            { key: 'createdAt', header: 'Date', sortable: true, render: (r) => (
               <span className="font-mono text-xs text-muted-foreground">{new Date(r.createdAt).toLocaleString()}</span>
-            )},
+            ), sortValue: (r) => new Date(r.createdAt).getTime() },
           ]}
           data={filtered}
         />
