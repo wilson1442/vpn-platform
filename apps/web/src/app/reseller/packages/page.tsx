@@ -262,21 +262,26 @@ export default function ResellerPackagesPage() {
         )}
 
       <DataTable
+        searchable
+        searchKeys={['name', 'duration', 'description']}
+        searchPlaceholder="Search packages..."
         columns={[
-          { key: 'name', header: 'Name', render: (p) => <span className="font-body font-medium">{p.name}</span> },
+          { key: 'name', header: 'Name', sortable: true, render: (p) => <span className="font-body font-medium">{p.name}</span> },
           {
             key: 'duration',
             header: 'Duration',
+            sortable: true,
             render: (p) => <span className="font-body text-sm">{DURATION_LABELS[p.duration] || p.duration || '-'}</span>,
           },
           {
             key: 'priceMonthly',
             header: 'Price',
+            sortable: true,
             render: (p) => <span className="font-mono font-medium">{formatDollars(p.priceMonthly)}</span>,
           },
-          { key: 'creditCost', header: 'Credit Cost', render: (p) => <span className="font-mono text-xs">{p.creditCost || 0}</span> },
-          { key: 'maxConnections', header: 'Max Connections', render: (p) => <span className="font-mono text-xs">{p.maxConnections}</span> },
-          { key: 'maxDevices', header: 'Max Devices', render: (p) => <span className="font-mono text-xs">{p.maxDevices}</span> },
+          { key: 'creditCost', header: 'Credit Cost', sortable: true, render: (p) => <span className="font-mono text-xs">{p.creditCost || 0}</span> },
+          { key: 'maxConnections', header: 'Max Connections', sortable: true, render: (p) => <span className="font-mono text-xs">{p.maxConnections}</span> },
+          { key: 'maxDevices', header: 'Max Devices', sortable: true, render: (p) => <span className="font-mono text-xs">{p.maxDevices}</span> },
           {
             key: 'actions',
             header: 'Actions',

@@ -77,14 +77,17 @@ export default function ResellerUserLogsPage() {
       </div>
 
       <DataTable
+        searchable
+        searchKeys={['action', 'targetId', 'actor', 'ipAddress', 'metadata']}
+        searchPlaceholder="Search logs by user, actor, IP..."
         columns={[
-          { key: 'action', header: 'Action', render: (r) => {
+          { key: 'action', header: 'Action', sortable: true, render: (r) => {
             const type = classifyAction(r.action);
             return <Badge className={ACTION_BADGE_STYLES[type] || ACTION_BADGE_STYLES.unknown}>{ACTION_LABELS[type]}</Badge>;
-          }},
-          { key: 'targetId', header: 'User', render: (r) => <span className="font-body">{r.metadata?.username || r.targetId || '\u2014'}</span> },
-          { key: 'actor', header: 'Actor', render: (r) => <span className="font-body">{r.actor?.username || r.actor?.email || '\u2014'}</span> },
-          { key: 'ipAddress', header: 'IP Address', render: (r) => <span className="font-mono text-xs text-cyan-400/70">{r.ipAddress || '\u2014'}</span> },
+          }, sortValue: (r) => classifyAction(r.action) },
+          { key: 'targetId', header: 'User', sortable: true, render: (r) => <span className="font-body">{r.metadata?.username || r.targetId || '\u2014'}</span>, sortValue: (r) => r.metadata?.username || r.targetId || '' },
+          { key: 'actor', header: 'Actor', sortable: true, render: (r) => <span className="font-body">{r.actor?.username || r.actor?.email || '\u2014'}</span>, sortValue: (r) => r.actor?.username || r.actor?.email || '' },
+          { key: 'ipAddress', header: 'IP Address', sortable: true, render: (r) => <span className="font-mono text-xs text-cyan-400/70">{r.ipAddress || '\u2014'}</span> },
           { key: 'details', header: 'Details', render: (r) => {
             if (!r.metadata) return <span className="text-muted-foreground">{'\u2014'}</span>;
             const parts: string[] = [];
@@ -92,7 +95,7 @@ export default function ResellerUserLogsPage() {
             if (r.metadata.days) parts.push(`Days: ${r.metadata.days}`);
             return parts.length > 0 ? <span className="font-body text-sm">{parts.join(', ')}</span> : <span className="text-muted-foreground">{'\u2014'}</span>;
           }},
-          { key: 'createdAt', header: 'Date', render: (r) => <span className="font-mono text-xs text-muted-foreground">{new Date(r.createdAt).toLocaleString()}</span> },
+          { key: 'createdAt', header: 'Date', sortable: true, render: (r) => <span className="font-mono text-xs text-muted-foreground">{new Date(r.createdAt).toLocaleString()}</span>, sortValue: (r) => new Date(r.createdAt).getTime() },
         ]}
         data={filtered}
       />

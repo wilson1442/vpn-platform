@@ -58,19 +58,22 @@ export default function ResellerCreditLogsPage() {
       </div>
 
       <DataTable
+        searchable
+        searchKeys={['reseller', 'type', 'description']}
+        searchPlaceholder="Search credit logs..."
         columns={[
-          { key: 'reseller', header: 'Reseller', render: (r) => <span className="font-body">{r.reseller?.companyName ?? '\u2014'}</span> },
-          { key: 'type', header: 'Type', render: (r) => (
+          { key: 'reseller', header: 'Reseller', sortable: true, render: (r) => <span className="font-body">{r.reseller?.companyName ?? '\u2014'}</span>, sortValue: (r) => r.reseller?.companyName || '' },
+          { key: 'type', header: 'Type', sortable: true, render: (r) => (
             <Badge className={TYPE_BADGE_STYLES[r.type] || 'bg-muted/50 text-muted-foreground border-border/30'}>{r.type}</Badge>
           )},
-          { key: 'amount', header: 'Amount', render: (r) => (
+          { key: 'amount', header: 'Amount', sortable: true, render: (r) => (
             <span className={`font-mono font-medium ${r.type === 'DEDUCT' ? 'text-rose-400' : 'text-emerald-400'}`}>
               {r.type === 'DEDUCT' ? '-' : '+'}{r.amount}
             </span>
           )},
-          { key: 'balanceAfter', header: 'Balance After', render: (r) => <span className="font-mono text-xs">{r.balanceAfter}</span> },
+          { key: 'balanceAfter', header: 'Balance After', sortable: true, render: (r) => <span className="font-mono text-xs">{r.balanceAfter}</span> },
           { key: 'description', header: 'Description', render: (r) => <span className="font-body text-sm">{r.description || '\u2014'}</span> },
-          { key: 'createdAt', header: 'Date', render: (r) => <span className="font-mono text-xs text-muted-foreground">{new Date(r.createdAt).toLocaleString()}</span> },
+          { key: 'createdAt', header: 'Date', sortable: true, render: (r) => <span className="font-mono text-xs text-muted-foreground">{new Date(r.createdAt).toLocaleString()}</span>, sortValue: (r) => new Date(r.createdAt).getTime() },
         ]}
         data={filtered}
       />

@@ -90,15 +90,18 @@ export default function ResellerVpnNodesPage() {
       )}
 
       <DataTable
+        searchable
+        searchKeys={['name', 'hostname']}
+        searchPlaceholder="Search nodes..."
         columns={[
-          { key: 'name', header: 'Name', render: (n) => <span className="font-body font-medium">{n.name}</span> },
-          { key: 'hostname', header: 'Hostname', render: (n) => <span className="font-mono text-xs text-cyan-400/70">{n.hostname}</span> },
-          { key: 'port', header: 'Port', render: (n) => <span className="font-mono text-xs">{n.port}</span> },
-          { key: 'status', header: 'Status', render: (n) => (
+          { key: 'name', header: 'Name', sortable: true, render: (n) => <span className="font-body font-medium">{n.name}</span> },
+          { key: 'hostname', header: 'Hostname', sortable: true, render: (n) => <span className="font-mono text-xs text-cyan-400/70">{n.hostname}</span> },
+          { key: 'port', header: 'Port', sortable: true, render: (n) => <span className="font-mono text-xs">{n.port}</span> },
+          { key: 'status', header: 'Status', sortable: true, render: (n) => (
             isNodeOnline(n)
               ? <Badge className="bg-emerald-500/15 text-emerald-400 border-emerald-500/30 hover:bg-emerald-500/20">Online</Badge>
               : <Badge className="bg-rose-500/15 text-rose-400 border-rose-500/30 hover:bg-rose-500/20">Offline</Badge>
-          )},
+          ), sortValue: (n) => isNodeOnline(n) ? 0 : 1 },
           { key: 'actions', header: 'Actions', render: (n) => (
             <div className="flex gap-2">
               <Button variant="outline" size="sm" className="hover:text-cyan-400 hover:bg-cyan-500/10" onClick={() => startEdit(n)}>Edit</Button>

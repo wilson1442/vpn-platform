@@ -170,17 +170,20 @@ export default function ResellerUsersPage() {
       )}
 
       <DataTable
+        searchable
+        searchKeys={['email', 'username', 'entitlement']}
+        searchPlaceholder="Search users by email, username..."
         columns={[
-          { key: 'email', header: 'Email' },
-          { key: 'package', header: 'Package', render: (u) => u.entitlement?.package?.name || <span className="font-body text-muted-foreground">-</span> },
-          { key: 'isActive', header: 'Status', render: (u) => {
+          { key: 'email', header: 'Email', sortable: true },
+          { key: 'package', header: 'Package', sortable: true, render: (u) => u.entitlement?.package?.name || <span className="font-body text-muted-foreground">-</span>, sortValue: (u) => u.entitlement?.package?.name || '' },
+          { key: 'isActive', header: 'Status', sortable: true, render: (u) => {
             const expired = u.expiresAt && new Date(u.expiresAt) < new Date();
             if (!u.isActive) return <Badge variant="destructive" className="bg-rose-500/15 text-rose-400 border-rose-500/20">Inactive</Badge>;
             if (expired) return <Badge variant="destructive" className="bg-rose-500/15 text-rose-400 border-rose-500/20">Expired</Badge>;
             return <Badge variant="default" className="bg-emerald-500/15 text-emerald-400 border-emerald-500/20">Active</Badge>;
-          }},
-          { key: 'expiresAt', header: 'Expires', render: (u) => <span className="font-mono text-xs">{u.expiresAt ? new Date(u.expiresAt).toLocaleDateString() : 'Never'}</span> },
-          { key: 'createdAt', header: 'Created', hideOnMobile: true, render: (u) => <span className="font-mono text-xs">{new Date(u.createdAt).toLocaleDateString()}</span> },
+          }, sortValue: (u) => { const expired = u.expiresAt && new Date(u.expiresAt) < new Date(); return !u.isActive ? 2 : expired ? 1 : 0; }},
+          { key: 'expiresAt', header: 'Expires', sortable: true, render: (u) => <span className="font-mono text-xs">{u.expiresAt ? new Date(u.expiresAt).toLocaleDateString() : 'Never'}</span>, sortValue: (u) => u.expiresAt ? new Date(u.expiresAt).getTime() : Infinity },
+          { key: 'createdAt', header: 'Created', sortable: true, hideOnMobile: true, render: (u) => <span className="font-mono text-xs">{new Date(u.createdAt).toLocaleDateString()}</span>, sortValue: (u) => new Date(u.createdAt).getTime() },
           { key: 'shortUrls', header: 'TinyURLs', hideOnMobile: true, render: (u) => {
             if (!u.shortUrls || u.shortUrls.length === 0) return <span className="font-body text-muted-foreground">-</span>;
             return (

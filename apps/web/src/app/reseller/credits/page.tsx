@@ -39,8 +39,11 @@ export default function CreditsPage() {
 
       <h2 className="mb-4 font-heading text-sm font-semibold text-cyan-400 uppercase tracking-wider">Transaction History</h2>
       <DataTable
+        searchable
+        searchKeys={['type', 'description']}
+        searchPlaceholder="Search transactions..."
         columns={[
-          { key: 'type', header: 'Type', render: (e) => (
+          { key: 'type', header: 'Type', sortable: true, render: (e) => (
             <span
               className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${
                 e.type === 'ADD'
@@ -53,22 +56,22 @@ export default function CreditsPage() {
               {e.type}
             </span>
           )},
-          { key: 'amount', header: 'Amount', render: (e) => (
+          { key: 'amount', header: 'Amount', sortable: true, render: (e) => (
             <span className={`font-mono font-medium ${
               e.amount > 0 ? 'text-emerald-400' : e.amount < 0 ? 'text-rose-400' : ''
             }`}>
               {e.amount > 0 ? '+' : ''}{e.amount}
             </span>
           )},
-          { key: 'balanceAfter', header: 'Balance After', render: (e) => (
+          { key: 'balanceAfter', header: 'Balance After', sortable: true, render: (e) => (
             <span className="font-mono text-xs">{e.balanceAfter}</span>
           )},
           { key: 'description', header: 'Description', render: (e) => (
             <span className="font-body text-sm">{e.description}</span>
           )},
-          { key: 'createdAt', header: 'Date', render: (e) => (
+          { key: 'createdAt', header: 'Date', sortable: true, render: (e) => (
             <span className="font-mono text-xs text-cyan-400/70">{new Date(e.createdAt).toLocaleString()}</span>
-          )},
+          ), sortValue: (e) => new Date(e.createdAt).getTime() },
         ]}
         data={history}
       />

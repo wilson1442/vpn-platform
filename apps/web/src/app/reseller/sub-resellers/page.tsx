@@ -60,11 +60,14 @@ export default function SubResellersPage() {
       )}
 
       <DataTable
+        searchable
+        searchKeys={['companyName', 'user']}
+        searchPlaceholder="Search sub-resellers..."
         columns={[
-          { key: 'companyName', header: 'Company', render: (r) => <span className="font-body">{r.companyName}</span> },
-          { key: 'user', header: 'Email', render: (r) => <span className="font-body text-cyan-400 hover:text-cyan-300">{r.user?.email}</span> },
-          { key: 'maxDepth', header: 'Max Depth', render: (r) => <span className="font-mono text-xs">{r.maxDepth}</span> },
-          { key: 'createdAt', header: 'Created', render: (r) => <span className="font-mono text-xs text-muted-foreground">{new Date(r.createdAt).toLocaleDateString()}</span> },
+          { key: 'companyName', header: 'Company', sortable: true, render: (r) => <span className="font-body">{r.companyName}</span> },
+          { key: 'user', header: 'Email', sortable: true, render: (r) => <span className="font-body text-cyan-400 hover:text-cyan-300">{r.user?.email}</span>, sortValue: (r) => r.user?.email || '' },
+          { key: 'maxDepth', header: 'Max Depth', sortable: true, render: (r) => <span className="font-mono text-xs">{r.maxDepth}</span> },
+          { key: 'createdAt', header: 'Created', sortable: true, render: (r) => <span className="font-mono text-xs text-muted-foreground">{new Date(r.createdAt).toLocaleDateString()}</span>, sortValue: (r) => new Date(r.createdAt).getTime() },
           { key: 'actions', header: 'Actions', render: (r) => (
             <div className="flex gap-2">
               <Button variant="outline" size="sm" className="hover:text-cyan-400 hover:bg-cyan-500/10" onClick={() => setCreditsTarget(r)}>Manage Credits</Button>
