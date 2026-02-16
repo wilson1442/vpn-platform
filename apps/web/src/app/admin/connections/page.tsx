@@ -5,6 +5,7 @@ import { api } from '@/lib/api';
 import { DataTable } from '@/components/data-table';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Wifi, RefreshCw } from 'lucide-react';
 
 interface Session {
   id: string;
@@ -66,7 +67,6 @@ export default function ConnectionsPage() {
     return () => clearInterval(interval);
   }, [loadSessions]);
 
-  // Tick every second to update durations
   useEffect(() => {
     const interval = setInterval(() => setTick((t) => t + 1), 1000);
     return () => clearInterval(interval);
@@ -89,15 +89,22 @@ export default function ConnectionsPage() {
     <div>
       <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-bold">Live Connections</h1>
-          <p className="text-sm text-muted-foreground mt-1">
-            {sessions.length} active connection{sessions.length !== 1 ? 's' : ''}
-            {' \u00b7 '}Auto-refreshes every 15s
-          </p>
+          <h1 className="font-heading text-2xl font-bold text-gradient bg-gradient-to-r from-cyan-400 to-teal-400">Live Connections</h1>
+          <div className="mt-1.5 flex items-center gap-3 text-sm text-muted-foreground">
+            <div className="flex items-center gap-1.5">
+              <span className="relative flex h-2 w-2">
+                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
+                <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500" />
+              </span>
+              <span className="font-mono">{sessions.length}</span> active
+            </div>
+            <span className="text-border">|</span>
+            <span className="text-xs">Auto-refreshes every 15s</span>
+          </div>
         </div>
         <div className="flex items-center gap-2">
           <select
-            className="rounded-lg border border-input bg-background/50 px-3 py-2 text-sm"
+            className="rounded-lg border border-border/30 bg-card/60 px-3 py-2 text-sm backdrop-blur-sm focus:ring-2 focus:ring-cyan-500/30 focus:border-cyan-500/30"
             value={filterNode}
             onChange={(e) => setFilterNode(e.target.value)}
           >
@@ -106,7 +113,8 @@ export default function ConnectionsPage() {
               <option key={n.id} value={n.id}>{n.name}</option>
             ))}
           </select>
-          <Button variant="outline" size="sm" onClick={loadSessions}>
+          <Button variant="outline" size="sm" onClick={loadSessions} className="gap-1.5 border-border/30">
+            <RefreshCw className="h-3.5 w-3.5" />
             Refresh
           </Button>
         </div>
@@ -123,53 +131,58 @@ export default function ConnectionsPage() {
             key: 'email',
             header: 'Email',
             hideOnMobile: true,
-            render: (s) => s.user.email,
+            render: (s) => <span className="text-muted-foreground">{s.user.email}</span>,
           },
           {
             key: 'realAddress',
             header: 'IP Address',
-            render: (s) => <code className="text-xs">{s.realAddress}</code>,
+            render: (s) => <code className="font-mono text-xs text-cyan-400/70">{s.realAddress}</code>,
           },
           {
             key: 'vpnNode',
             header: 'Server',
-            render: (s) => <Badge variant="outline">{s.vpnNode.name}</Badge>,
+            render: (s) => (
+              <Badge variant="outline" className="border-border/30 bg-white/[0.02] font-mono text-xs">
+                {s.vpnNode.name}
+              </Badge>
+            ),
           },
           {
             key: 'connectedAt',
             header: 'Connected Since',
             hideOnMobile: true,
-            render: (s) => new Date(s.connectedAt).toLocaleString(),
+            render: (s) => <span className="font-mono text-xs text-muted-foreground">{new Date(s.connectedAt).toLocaleString()}</span>,
           },
           {
             key: 'duration',
             header: 'Duration',
-            render: (s) => formatDuration(s.connectedAt),
+            render: (s) => <span className="font-mono text-xs text-emerald-400">{formatDuration(s.connectedAt)}</span>,
           },
           {
             key: 'bytesReceived',
             header: 'Recv',
             hideOnMobile: true,
-            render: (s) => formatBytes(s.bytesReceived),
+            render: (s) => <span className="font-mono text-xs">{formatBytes(s.bytesReceived)}</span>,
           },
           {
             key: 'bytesSent',
             header: 'Sent',
             hideOnMobile: true,
-            render: (s) => formatBytes(s.bytesSent),
+            render: (s) => <span className="font-mono text-xs">{formatBytes(s.bytesSent)}</span>,
           },
           {
             key: 'actions',
             header: '',
             render: (s) => (
               <Button
-                variant="destructive"
+                variant="ghost"
                 size="sm"
                 disabled={kicking === s.id}
                 onClick={(e) => {
                   e.stopPropagation();
                   handleKick(s);
                 }}
+                className="text-rose-400 hover:text-rose-300 hover:bg-rose-500/10 text-xs"
               >
                 {kicking === s.id ? 'Kicking...' : 'Kick'}
               </Button>

@@ -78,72 +78,92 @@ export default function ResellerUsersPage() {
   return (
     <div>
       <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <h1 className="text-2xl font-bold">Users</h1>
-        <Button className="w-full sm:w-auto" onClick={() => setShowCreate(!showCreate)}>
+        <h1 className="font-heading text-2xl font-bold bg-gradient-to-r from-cyan-400 to-teal-400 bg-clip-text text-transparent">Users</h1>
+        <Button className="w-full sm:w-auto bg-cyan-600 hover:bg-cyan-500 text-white shadow-lg shadow-cyan-500/15" onClick={() => setShowCreate(!showCreate)}>
           {showCreate ? 'Cancel' : 'Create User'}
         </Button>
       </div>
 
       {showCreate && (
-        <form onSubmit={handleCreate} className="mb-6 space-y-3 rounded-xl border border-border/40 bg-card/30 p-5 backdrop-blur-sm">
-          <Input placeholder="Email" type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} required />
-          <Input placeholder="Password" type="password" value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} required />
-          <label className="block text-sm font-medium">Package (optional)</label>
-          <select className="w-full rounded-lg border border-input bg-background/50 p-2 text-sm" value={form.packageId} onChange={(e) => setForm({ ...form, packageId: e.target.value })}>
-            <option value="">No package (manual expiration)</option>
-            {packages.map((p: any) => (
-              <option key={p.id} value={p.id}>{p.name} ({p.duration})</option>
-            ))}
-          </select>
+        <form onSubmit={handleCreate} className="mb-6 rounded-xl border border-border/20 bg-card/40 backdrop-blur-sm p-5 space-y-4">
+          <h3 className="font-heading text-sm font-semibold text-cyan-400">New User</h3>
+          <div>
+            <label className="block text-xs font-medium uppercase tracking-wider text-muted-foreground mb-1.5">Email</label>
+            <Input placeholder="Email" type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} required />
+          </div>
+          <div>
+            <label className="block text-xs font-medium uppercase tracking-wider text-muted-foreground mb-1.5">Password</label>
+            <Input placeholder="Password" type="password" value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} required />
+          </div>
+          <div>
+            <label className="block text-xs font-medium uppercase tracking-wider text-muted-foreground mb-1.5">Package (optional)</label>
+            <select className="w-full bg-card/60 border border-border/30 rounded-lg p-2 text-sm" value={form.packageId} onChange={(e) => setForm({ ...form, packageId: e.target.value })}>
+              <option value="">No package (manual expiration)</option>
+              {packages.map((p: any) => (
+                <option key={p.id} value={p.id}>{p.name} ({p.duration})</option>
+              ))}
+            </select>
+          </div>
           {selectedPackage && selectedPackage.creditCost > 0 && (
-            <p className="text-sm text-amber-600 dark:text-amber-400">
+            <p className="font-body text-sm text-amber-400">
               This will deduct {selectedPackage.creditCost} credits from your balance.
             </p>
           )}
           {!form.packageId && (
-            <>
-              <label className="block text-sm font-medium">Expires At (optional)</label>
+            <div>
+              <label className="block text-xs font-medium uppercase tracking-wider text-muted-foreground mb-1.5">Expires At (optional)</label>
               <Input type="datetime-local" value={form.expiresAt} onChange={(e) => setForm({ ...form, expiresAt: e.target.value })} />
-            </>
+            </div>
           )}
-          <Button type="submit">Create</Button>
+          <Button type="submit" className="bg-cyan-600 hover:bg-cyan-500 text-white shadow-lg shadow-cyan-500/15">Create</Button>
         </form>
       )}
 
       {editingId && (
-        <form onSubmit={handleEdit} className="mb-6 space-y-3 rounded-xl border border-indigo-500/20 bg-indigo-500/5 p-5 backdrop-blur-sm">
-          <h3 className="font-semibold">Edit User</h3>
-          <Input placeholder="Email" type="email" value={editForm.email} onChange={(e) => setEditForm({ ...editForm, email: e.target.value })} required />
-          <Input placeholder="New Password (leave blank to keep)" type="password" value={editForm.password} onChange={(e) => setEditForm({ ...editForm, password: e.target.value })} />
-          <label className="flex items-center gap-2 text-sm">
+        <form onSubmit={handleEdit} className="mb-6 rounded-xl border border-border/20 bg-card/40 backdrop-blur-sm p-5 space-y-4">
+          <h3 className="font-heading text-sm font-semibold text-cyan-400">Edit User</h3>
+          <div>
+            <label className="block text-xs font-medium uppercase tracking-wider text-muted-foreground mb-1.5">Email</label>
+            <Input placeholder="Email" type="email" value={editForm.email} onChange={(e) => setEditForm({ ...editForm, email: e.target.value })} required />
+          </div>
+          <div>
+            <label className="block text-xs font-medium uppercase tracking-wider text-muted-foreground mb-1.5">New Password (leave blank to keep)</label>
+            <Input placeholder="New Password (leave blank to keep)" type="password" value={editForm.password} onChange={(e) => setEditForm({ ...editForm, password: e.target.value })} />
+          </div>
+          <label className="flex items-center gap-2 font-body text-sm">
             <input type="checkbox" checked={editForm.isActive} onChange={(e) => setEditForm({ ...editForm, isActive: e.target.checked })} />
             Active
           </label>
-          <label className="block text-sm font-medium">Expires At (leave blank for never)</label>
-          <Input type="datetime-local" value={editForm.expiresAt} onChange={(e) => setEditForm({ ...editForm, expiresAt: e.target.value })} />
+          <div>
+            <label className="block text-xs font-medium uppercase tracking-wider text-muted-foreground mb-1.5">Expires At (leave blank for never)</label>
+            <Input type="datetime-local" value={editForm.expiresAt} onChange={(e) => setEditForm({ ...editForm, expiresAt: e.target.value })} />
+          </div>
           <div className="flex gap-2">
-            <Button type="submit">Save</Button>
+            <Button type="submit" className="bg-cyan-600 hover:bg-cyan-500 text-white shadow-lg shadow-cyan-500/15">Save</Button>
             <Button type="button" variant="outline" onClick={() => setEditingId(null)}>Cancel</Button>
           </div>
         </form>
       )}
 
       {extendingId && (
-        <form onSubmit={handleExtend} className="mb-6 space-y-3 rounded-xl border border-emerald-500/20 bg-emerald-500/5 p-5 backdrop-blur-sm">
-          <h3 className="font-semibold">Extend User Package</h3>
-          <select className="w-full rounded-lg border border-input bg-background/50 p-2 text-sm" value={extendPackageId} onChange={(e) => setExtendPackageId(e.target.value)} required>
-            <option value="">Select a package</option>
-            {packages.map((p: any) => (
-              <option key={p.id} value={p.id}>{p.name} ({p.duration})</option>
-            ))}
-          </select>
+        <form onSubmit={handleExtend} className="mb-6 rounded-xl border border-border/20 bg-card/40 backdrop-blur-sm p-5 space-y-4">
+          <h3 className="font-heading text-sm font-semibold text-cyan-400">Extend User Package</h3>
+          <div>
+            <label className="block text-xs font-medium uppercase tracking-wider text-muted-foreground mb-1.5">Select Package</label>
+            <select className="w-full bg-card/60 border border-border/30 rounded-lg p-2 text-sm" value={extendPackageId} onChange={(e) => setExtendPackageId(e.target.value)} required>
+              <option value="">Select a package</option>
+              {packages.map((p: any) => (
+                <option key={p.id} value={p.id}>{p.name} ({p.duration})</option>
+              ))}
+            </select>
+          </div>
           {extendSelectedPackage && extendSelectedPackage.creditCost > 0 && (
-            <p className="text-sm text-amber-600 dark:text-amber-400">
+            <p className="font-body text-sm text-amber-400">
               This will deduct {extendSelectedPackage.creditCost} credits from your balance.
             </p>
           )}
           <div className="flex gap-2">
-            <Button type="submit">Extend</Button>
+            <Button type="submit" className="bg-cyan-600 hover:bg-cyan-500 text-white shadow-lg shadow-cyan-500/15">Extend</Button>
             <Button type="button" variant="outline" onClick={() => { setExtendingId(null); setExtendPackageId(''); }}>Cancel</Button>
           </div>
         </form>
@@ -152,28 +172,28 @@ export default function ResellerUsersPage() {
       <DataTable
         columns={[
           { key: 'email', header: 'Email' },
-          { key: 'package', header: 'Package', render: (u) => u.entitlement?.package?.name || '-' },
+          { key: 'package', header: 'Package', render: (u) => u.entitlement?.package?.name || <span className="font-body text-muted-foreground">-</span> },
           { key: 'isActive', header: 'Status', render: (u) => {
             const expired = u.expiresAt && new Date(u.expiresAt) < new Date();
-            if (!u.isActive) return <Badge variant="destructive">Inactive</Badge>;
-            if (expired) return <Badge variant="destructive">Expired</Badge>;
-            return <Badge variant="default">Active</Badge>;
+            if (!u.isActive) return <Badge variant="destructive" className="bg-rose-500/15 text-rose-400 border-rose-500/20">Inactive</Badge>;
+            if (expired) return <Badge variant="destructive" className="bg-rose-500/15 text-rose-400 border-rose-500/20">Expired</Badge>;
+            return <Badge variant="default" className="bg-emerald-500/15 text-emerald-400 border-emerald-500/20">Active</Badge>;
           }},
-          { key: 'expiresAt', header: 'Expires', render: (u) => u.expiresAt ? new Date(u.expiresAt).toLocaleDateString() : 'Never' },
-          { key: 'createdAt', header: 'Created', hideOnMobile: true, render: (u) => new Date(u.createdAt).toLocaleDateString() },
+          { key: 'expiresAt', header: 'Expires', render: (u) => <span className="font-mono text-xs">{u.expiresAt ? new Date(u.expiresAt).toLocaleDateString() : 'Never'}</span> },
+          { key: 'createdAt', header: 'Created', hideOnMobile: true, render: (u) => <span className="font-mono text-xs">{new Date(u.createdAt).toLocaleDateString()}</span> },
           { key: 'shortUrls', header: 'TinyURLs', hideOnMobile: true, render: (u) => {
-            if (!u.shortUrls || u.shortUrls.length === 0) return '-';
+            if (!u.shortUrls || u.shortUrls.length === 0) return <span className="font-body text-muted-foreground">-</span>;
             return (
               <div className="space-y-1">
                 {u.shortUrls.map((s: any) => (
-                  <div key={s.code} className="text-xs">
+                  <div key={s.code} className="font-mono text-xs">
                     <span className="text-muted-foreground">{s.vpnNode?.name}: </span>
                     {s.shortUrl ? (
-                      <a href={s.shortUrl} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
+                      <a href={s.shortUrl} target="_blank" rel="noopener noreferrer" className="text-cyan-400 hover:text-cyan-300 hover:underline">
                         {s.shortUrl.replace('https://', '')}
                       </a>
                     ) : (
-                      <span className="text-muted-foreground">{s.code}</span>
+                      <span className="font-mono text-xs text-cyan-400/70">{s.code}</span>
                     )}
                   </div>
                 ))}
@@ -182,17 +202,17 @@ export default function ResellerUsersPage() {
           }},
           { key: 'actions', header: 'Actions', render: (u) => (
             <div className="flex gap-1">
-              <Button variant="ghost" size="sm" className="h-8 w-8 p-0" onClick={() => startEdit(u)} title="Edit">
+              <Button variant="ghost" size="sm" className="h-8 w-8 p-0 hover:text-cyan-400 hover:bg-cyan-500/10" onClick={() => startEdit(u)} title="Edit">
                 <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                 </svg>
               </Button>
-              <Button variant="ghost" size="sm" className="h-8 w-8 p-0" onClick={() => { setExtendingId(u.id); setExtendPackageId(''); }} title="Extend">
+              <Button variant="ghost" size="sm" className="h-8 w-8 p-0 hover:text-cyan-400 hover:bg-cyan-500/10" onClick={() => { setExtendingId(u.id); setExtendPackageId(''); }} title="Extend">
                 <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
               </Button>
-              <Button variant="ghost" size="sm" className="h-8 w-8 p-0 text-destructive hover:text-destructive hover:bg-destructive/10" onClick={() => handleDelete(u)} title="Delete">
+              <Button variant="ghost" size="sm" className="h-8 w-8 p-0 text-rose-400 hover:text-rose-300 hover:bg-rose-500/10" onClick={() => handleDelete(u)} title="Delete">
                 <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                 </svg>

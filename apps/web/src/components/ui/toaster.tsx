@@ -12,7 +12,7 @@ export function Toaster() {
           key={toast.id}
           className={`animate-slide-in rounded-xl border px-4 py-3 shadow-xl backdrop-blur-xl transition-all ${
             toast.variant === 'destructive'
-              ? 'border-red-500/30 bg-red-500/10 text-red-400'
+              ? 'border-rose-500/30 bg-rose-500/10 text-rose-400'
               : 'border-border/50 bg-background/95 text-foreground'
           }`}
         >

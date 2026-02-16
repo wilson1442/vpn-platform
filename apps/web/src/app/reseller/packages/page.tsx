@@ -130,16 +130,16 @@ export default function ResellerPackagesPage() {
   ) => (
     <form
       onSubmit={onSubmit}
-      className={`mb-6 space-y-4 ${
+      className={`mb-6 rounded-xl border border-border/20 bg-card/40 backdrop-blur-sm p-5 space-y-4 ${
         highlight
-          ? 'rounded-xl border border-indigo-500/20 bg-indigo-500/5 p-5 backdrop-blur-sm'
-          : 'rounded-xl border border-border/40 bg-card/30 p-5 backdrop-blur-sm'
+          ? 'border-cyan-500/30 shadow-lg shadow-cyan-500/5'
+          : ''
       }`}
     >
-      {highlight && <h3 className="font-semibold text-lg">Edit Package</h3>}
+      {highlight && <h3 className="font-heading text-sm font-semibold text-cyan-400">Edit Package</h3>}
 
       <div>
-        <label className="mb-1 block text-sm font-medium text-muted-foreground">Package Name</label>
+        <label className="text-xs font-medium uppercase tracking-wider text-muted-foreground mb-1.5 block">Package Name</label>
         <Input
           value={formData.name}
           onChange={(e) => setFormData({ ...formData, name: e.target.value })}
@@ -149,9 +149,9 @@ export default function ResellerPackagesPage() {
 
       <div className="grid grid-cols-2 gap-4">
         <div>
-          <label className="mb-1 block text-sm font-medium text-muted-foreground">Duration</label>
+          <label className="text-xs font-medium uppercase tracking-wider text-muted-foreground mb-1.5 block">Duration</label>
           <select
-            className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            className="flex h-10 w-full bg-card/60 border border-border/30 rounded-lg p-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500/40"
             value={formData.duration}
             onChange={(e) => setFormData({ ...formData, duration: e.target.value })}
           >
@@ -164,9 +164,9 @@ export default function ResellerPackagesPage() {
         </div>
 
         <div>
-          <label className="mb-1 block text-sm font-medium text-muted-foreground">Price (USD)</label>
+          <label className="text-xs font-medium uppercase tracking-wider text-muted-foreground mb-1.5 block">Price (USD)</label>
           <div className="relative">
-            <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">$</span>
+            <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 font-mono text-xs text-muted-foreground">$</span>
             <Input
               type="number"
               step="0.01"
@@ -181,7 +181,7 @@ export default function ResellerPackagesPage() {
 
       <div className="grid grid-cols-3 gap-4">
         <div>
-          <label className="mb-1 block text-sm font-medium text-muted-foreground">Max Connections</label>
+          <label className="text-xs font-medium uppercase tracking-wider text-muted-foreground mb-1.5 block">Max Connections</label>
           <Input
             type="number"
             min="1"
@@ -190,7 +190,7 @@ export default function ResellerPackagesPage() {
           />
         </div>
         <div>
-          <label className="mb-1 block text-sm font-medium text-muted-foreground">Max Devices</label>
+          <label className="text-xs font-medium uppercase tracking-wider text-muted-foreground mb-1.5 block">Max Devices</label>
           <Input
             type="number"
             min="1"
@@ -199,7 +199,7 @@ export default function ResellerPackagesPage() {
           />
         </div>
         <div>
-          <label className="mb-1 block text-sm font-medium text-muted-foreground">Credit Cost</label>
+          <label className="text-xs font-medium uppercase tracking-wider text-muted-foreground mb-1.5 block">Credit Cost</label>
           <Input
             type="number"
             min="0"
@@ -210,17 +210,17 @@ export default function ResellerPackagesPage() {
       </div>
 
       <div>
-        <label className="mb-1 block text-sm font-medium text-muted-foreground">Description</label>
+        <label className="text-xs font-medium uppercase tracking-wider text-muted-foreground mb-1.5 block">Description</label>
         <textarea
-          className="flex min-h-[100px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          className="flex min-h-[100px] w-full bg-card/60 border border-border/30 rounded-lg px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500/40"
           placeholder="Package description"
           value={formData.description}
           onChange={(e) => setFormData({ ...formData, description: e.target.value })}
         />
       </div>
 
-      <div className="flex gap-2">
-        <Button type="submit">{submitLabel}</Button>
+      <div className="flex gap-2 pt-2">
+        <Button type="submit" className="bg-cyan-600 hover:bg-cyan-500 text-white shadow-lg shadow-cyan-500/15">{submitLabel}</Button>
         {onCancel && (
           <Button type="button" variant="outline" onClick={onCancel}>
             Cancel
@@ -232,9 +232,13 @@ export default function ResellerPackagesPage() {
 
   return (
     <div>
-      <div className="mb-4 flex items-center justify-between">
-        <h1 className="text-2xl font-bold">My Packages</h1>
-        <Button onClick={() => setShowCreate(!showCreate)}>
+      <div className="mb-6 flex items-center justify-between">
+        <h1 className="font-heading text-2xl font-bold bg-gradient-to-r from-cyan-400 to-teal-400 bg-clip-text text-transparent">My Packages</h1>
+        <Button
+          className={showCreate ? '' : 'bg-cyan-600 hover:bg-cyan-500 text-white shadow-lg shadow-cyan-500/15'}
+          variant={showCreate ? 'outline' : undefined}
+          onClick={() => setShowCreate(!showCreate)}
+        >
           {showCreate ? 'Cancel' : 'Create Package'}
         </Button>
       </div>
@@ -259,20 +263,20 @@ export default function ResellerPackagesPage() {
 
       <DataTable
         columns={[
-          { key: 'name', header: 'Name' },
+          { key: 'name', header: 'Name', render: (p) => <span className="font-body font-medium">{p.name}</span> },
           {
             key: 'duration',
             header: 'Duration',
-            render: (p) => DURATION_LABELS[p.duration] || p.duration || '-',
+            render: (p) => <span className="font-body text-sm">{DURATION_LABELS[p.duration] || p.duration || '-'}</span>,
           },
           {
             key: 'priceMonthly',
             header: 'Price',
-            render: (p) => formatDollars(p.priceMonthly),
+            render: (p) => <span className="font-mono font-medium">{formatDollars(p.priceMonthly)}</span>,
           },
-          { key: 'creditCost', header: 'Credit Cost', render: (p) => p.creditCost || 0 },
-          { key: 'maxConnections', header: 'Max Connections' },
-          { key: 'maxDevices', header: 'Max Devices' },
+          { key: 'creditCost', header: 'Credit Cost', render: (p) => <span className="font-mono text-xs">{p.creditCost || 0}</span> },
+          { key: 'maxConnections', header: 'Max Connections', render: (p) => <span className="font-mono text-xs">{p.maxConnections}</span> },
+          { key: 'maxDevices', header: 'Max Devices', render: (p) => <span className="font-mono text-xs">{p.maxDevices}</span> },
           {
             key: 'actions',
             header: 'Actions',
@@ -281,9 +285,12 @@ export default function ResellerPackagesPage() {
                 <Button variant="outline" size="sm" onClick={() => startEdit(p)}>
                   Edit
                 </Button>
-                <Button variant="destructive" size="sm" onClick={() => handleDelete(p)}>
+                <button
+                  className="text-rose-400 hover:text-rose-300 hover:bg-rose-500/10 rounded-md px-3 py-1.5 text-sm font-medium transition-colors"
+                  onClick={() => handleDelete(p)}
+                >
                   Delete
-                </Button>
+                </button>
               </div>
             ),
           },

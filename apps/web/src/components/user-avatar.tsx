@@ -40,7 +40,7 @@ export function UserAvatar({ userId, avatarPath, username, size = 'md', classNam
   return (
     <div
       className={cn(
-        'flex items-center justify-center rounded-full bg-gradient-to-br from-indigo-500/20 to-blue-500/20 font-medium text-indigo-400 ring-2 ring-border/40',
+        'flex items-center justify-center rounded-full bg-gradient-to-br from-cyan-500/20 to-teal-500/20 font-medium text-cyan-400 ring-2 ring-border/40',
         sizeClasses[size],
         className,
       )}

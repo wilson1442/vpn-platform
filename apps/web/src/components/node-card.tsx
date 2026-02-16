@@ -46,7 +46,7 @@ export function NodeCard({ node }: { node: NodeStats }) {
             className={`inline-block h-2.5 w-2.5 rounded-full ${
               online
                 ? 'bg-emerald-500 shadow-lg shadow-emerald-500/30'
-                : 'bg-red-500 shadow-lg shadow-red-500/20'
+                : 'bg-rose-500 shadow-lg shadow-rose-500/20'
             }`}
           />
           <CardTitle className="text-sm font-semibold">{node.nodeName}</CardTitle>
@@ -54,17 +54,17 @@ export function NodeCard({ node }: { node: NodeStats }) {
         <p className="text-xs text-muted-foreground">{node.hostname}</p>
       </CardHeader>
       <CardContent>
-        <div className="mb-3 inline-flex items-center gap-1.5 rounded-md bg-indigo-500/10 px-2 py-0.5 text-xs font-medium text-indigo-400">
+        <div className="mb-3 inline-flex items-center gap-1.5 rounded-md bg-cyan-500/10 px-2 py-0.5 text-xs font-medium font-mono text-cyan-400">
           {node.activeConnections} connection{node.activeConnections !== 1 ? 's' : ''}
         </div>
         <div className="flex justify-around">
           <Gauge value={node.cpuPercent} label="CPU" color="#f59e0b" />
-          <Gauge value={node.memPercent} label="RAM" color="#6366f1" />
+          <Gauge value={node.memPercent} label="RAM" color="#2dd4bf" />
           <Gauge value={netPercent(node.netRxBps, node.netTxBps)} label="Net" color="#06b6d4" />
         </div>
         <div className="mt-3 flex justify-between text-xs text-muted-foreground">
           <span className="flex items-center gap-1.5">
-            <span className="inline-block h-1.5 w-1.5 rounded-full bg-indigo-500" />
+            <span className="inline-block h-1.5 w-1.5 rounded-full bg-teal-500" />
             RX: {formatBytes(node.vpnRxBps || node.netRxBps)}
           </span>
           <span className="flex items-center gap-1.5">

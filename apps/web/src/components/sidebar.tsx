@@ -17,12 +17,13 @@ import {
   Package,
   Coins,
   Receipt,
-  Landmark,
   ScrollText,
   FolderOpen,
   Settings,
   FileKey,
   Activity,
+  LogOut,
+  ChevronRight,
   type LucideIcon,
 } from 'lucide-react';
 
@@ -45,7 +46,6 @@ const adminNav: NavItem[] = [
   { label: 'Packages', href: '/admin/packages', icon: Package },
   { label: 'Credit Packages', href: '/admin/credit-packages', icon: Coins, feature: 'resellers' },
   { label: 'Billing', href: '/admin/billing', icon: Receipt },
-  { label: 'Payment Gateways', href: '/admin/payment-gateways', icon: Landmark },
   { label: 'Audit Log', href: '/admin/audit-log', icon: ScrollText },
   {
     label: 'Logs',
@@ -112,17 +112,17 @@ function NavLink({ item, pathname, onNavigate }: { item: NavItem; pathname: stri
         href={item.href}
         onClick={onNavigate}
         className={cn(
-          'group flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-200',
+          'group relative flex items-center gap-3 rounded-lg px-3 py-2 text-[13px] font-medium transition-all duration-200',
           pathname === item.href
-            ? 'bg-gradient-to-r from-indigo-500/15 to-blue-500/10 text-indigo-400 shadow-sm shadow-indigo-500/5'
-            : 'text-muted-foreground hover:bg-accent/50 hover:text-foreground',
+            ? 'bg-cyan-500/8 text-cyan-400'
+            : 'text-muted-foreground hover:bg-white/[0.03] hover:text-foreground',
         )}
       >
         {pathname === item.href && (
-          <span className="absolute left-0 h-6 w-0.5 rounded-full bg-indigo-500" />
+          <span className="absolute left-0 top-1/2 h-5 w-[2px] -translate-y-1/2 rounded-full bg-cyan-500" />
         )}
-        {Icon && <Icon className="h-4 w-4 shrink-0" />}
-        {item.label}
+        {Icon && <Icon className="h-[15px] w-[15px] shrink-0 opacity-70 group-hover:opacity-100 transition-opacity" />}
+        <span>{item.label}</span>
       </Link>
     );
   }
@@ -132,25 +132,19 @@ function NavLink({ item, pathname, onNavigate }: { item: NavItem; pathname: stri
       <button
         onClick={() => setExpanded(!expanded)}
         className={cn(
-          'flex w-full items-center justify-between rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-200',
+          'flex w-full items-center justify-between rounded-lg px-3 py-2 text-[13px] font-medium transition-all duration-200',
           isActive
             ? 'text-foreground'
-            : 'text-muted-foreground hover:bg-accent/50 hover:text-foreground',
+            : 'text-muted-foreground hover:bg-white/[0.03] hover:text-foreground',
         )}
       >
         <span className="flex items-center gap-3">
-          {Icon && <Icon className="h-4 w-4 shrink-0" />}
+          {Icon && <Icon className="h-[15px] w-[15px] shrink-0 opacity-70" />}
           {item.label}
         </span>
-        <svg
-          className={cn('h-4 w-4 transition-transform duration-200', expanded && 'rotate-90')}
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-          strokeWidth={2}
-        >
-          <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
-        </svg>
+        <ChevronRight
+          className={cn('h-3.5 w-3.5 transition-transform duration-200', expanded && 'rotate-90')}
+        />
       </button>
       <div className={cn(
         'ml-3 space-y-0.5 overflow-hidden border-l border-border/40 pl-3 transition-all duration-200',
@@ -162,10 +156,10 @@ function NavLink({ item, pathname, onNavigate }: { item: NavItem; pathname: stri
             href={child.href}
             onClick={onNavigate}
             className={cn(
-              'block rounded-lg px-3 py-2 text-sm transition-all duration-200',
+              'block rounded-md px-3 py-1.5 text-[13px] transition-all duration-200',
               pathname === child.href
-                ? 'bg-indigo-500/10 text-indigo-400 font-medium'
-                : 'text-muted-foreground hover:bg-accent/50 hover:text-foreground',
+                ? 'bg-cyan-500/8 text-cyan-400 font-medium'
+                : 'text-muted-foreground hover:bg-white/[0.03] hover:text-foreground',
             )}
           >
             {child.label}
@@ -208,7 +202,7 @@ export function Sidebar() {
       {/* Backdrop overlay for mobile */}
       {isOpen && (
         <div
-          className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm md:hidden"
+          className="fixed inset-0 z-40 bg-black/70 backdrop-blur-sm md:hidden"
           onClick={close}
           aria-hidden="true"
         />
@@ -217,76 +211,74 @@ export function Sidebar() {
       {/* Sidebar */}
       <aside
         className={cn(
-          'fixed inset-y-0 left-0 z-50 flex w-64 flex-col border-r border-border/40 bg-background/80 backdrop-blur-xl transition-transform duration-300 ease-in-out md:static md:translate-x-0',
+          'fixed inset-y-0 left-0 z-50 flex w-60 flex-col border-r border-border/30 bg-[hsl(228_20%_3.5%)]/95 backdrop-blur-xl transition-transform duration-300 ease-in-out md:static md:translate-x-0',
           isOpen ? 'translate-x-0' : '-translate-x-full',
         )}
       >
         {/* Brand */}
-        <div className="flex h-16 items-center justify-between border-b border-border/40 px-5">
-          <div className="flex items-center gap-3">
+        <div className="flex h-14 items-center justify-between border-b border-border/20 px-4">
+          <div className="flex items-center gap-2.5">
             {branding.logoPath ? (
               <img
                 src={`${API_URL}/settings/logo`}
                 alt="Logo"
-                className="h-16 w-16 rounded-lg object-contain"
+                className="h-14 w-14 rounded-lg object-contain"
               />
             ) : (
-              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-indigo-500 to-blue-600 shadow-lg shadow-indigo-500/20">
-                <svg className="h-4 w-4 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5}>
+              <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-gradient-to-br from-cyan-500 to-teal-600 shadow-lg shadow-cyan-500/15">
+                <svg className="h-3.5 w-3.5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
                 </svg>
               </div>
             )}
-            <span className="text-base font-bold tracking-tight">{branding.siteName}</span>
+            <span className="font-heading text-sm font-semibold tracking-tight text-foreground/90">{branding.siteName}</span>
           </div>
           {/* Close button for mobile */}
           <Button
             variant="ghost"
             size="sm"
-            className="h-8 w-8 p-0 md:hidden"
+            className="h-7 w-7 p-0 md:hidden"
             onClick={close}
             aria-label="Close navigation menu"
           >
-            <svg
-              className="h-5 w-5"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-              strokeWidth={2}
-            >
+            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
             </svg>
           </Button>
         </div>
 
         {/* Navigation */}
-        <nav className="flex-1 space-y-0.5 overflow-y-auto p-3">
+        <nav className="flex-1 space-y-0.5 overflow-y-auto p-2.5">
           {nav.map((item) => (
             <NavLink key={item.href} item={item} pathname={pathname} onNavigate={close} />
           ))}
         </nav>
 
         {/* Footer */}
-        <div className="border-t border-border/40 p-4">
+        <div className="border-t border-border/20 p-3">
           {versionInfo && (
-            <div className="mb-2 flex items-center gap-2 text-xs text-muted-foreground/60">
-              <Link href="/changelog" className="hover:text-indigo-400 transition-colors">
+            <div className="mb-2 flex items-center gap-2">
+              <Link href="/changelog" className="font-mono text-[10px] text-muted-foreground/40 hover:text-cyan-400 transition-colors">
                 v{versionInfo.version}
               </Link>
             </div>
           )}
-          <div className="mb-3 flex items-center gap-3">
-            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-indigo-500/20 to-blue-500/20 text-xs font-bold text-indigo-400">
+          <div className="mb-2 flex items-center gap-2.5 rounded-lg bg-white/[0.02] px-2.5 py-2">
+            <div className="flex h-7 w-7 items-center justify-center rounded-md bg-gradient-to-br from-cyan-500/15 to-teal-500/15 text-[11px] font-bold text-cyan-400 ring-1 ring-cyan-500/10">
               {user?.username?.charAt(0).toUpperCase()}
             </div>
-            <div className="flex-1 truncate">
-              <p className="truncate text-sm font-medium">{user?.username}</p>
-              <p className="truncate text-xs text-muted-foreground">{user?.email}</p>
+            <div className="flex-1 min-w-0">
+              <p className="truncate text-[13px] font-medium text-foreground/80">{user?.username}</p>
+              <p className="truncate text-[11px] text-muted-foreground">{user?.email}</p>
             </div>
           </div>
-          <Button variant="outline" size="sm" className="w-full" onClick={logout}>
+          <button
+            onClick={logout}
+            className="flex w-full items-center justify-center gap-2 rounded-lg border border-border/30 bg-white/[0.02] px-3 py-1.5 text-[12px] font-medium text-muted-foreground transition-all hover:bg-white/[0.04] hover:text-foreground"
+          >
+            <LogOut className="h-3 w-3" />
             Log out
-          </Button>
+          </button>
         </div>
       </aside>
     </>

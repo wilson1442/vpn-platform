@@ -54,7 +54,7 @@ export function DataTable<T extends Record<string, any>>({ columns, data, onRowC
                 <tr
                   key={item.id || i}
                   className={cn(
-                    'border-b border-border/20 transition-colors duration-150 hover:bg-indigo-500/5',
+                    'border-b border-border/20 transition-colors duration-150 hover:bg-cyan-500/5',
                     onRowClick && 'cursor-pointer',
                   )}
                   onClick={() => onRowClick?.(item)}

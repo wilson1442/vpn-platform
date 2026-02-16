@@ -47,8 +47,8 @@ export function BandwidthChart({ data }: { data: BandwidthPoint[] }) {
             <AreaChart data={data} margin={{ top: 5, right: 20, left: 10, bottom: 5 }}>
               <defs>
                 <linearGradient id="rxGrad" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#6366f1" stopOpacity={0.3} />
-                  <stop offset="95%" stopColor="#6366f1" stopOpacity={0} />
+                  <stop offset="5%" stopColor="#2dd4bf" stopOpacity={0.3} />
+                  <stop offset="95%" stopColor="#2dd4bf" stopOpacity={0} />
                 </linearGradient>
                 <linearGradient id="txGrad" x1="0" y1="0" x2="0" y2="1">
                   <stop offset="5%" stopColor="#06b6d4" stopOpacity={0.3} />
@@ -92,7 +92,7 @@ export function BandwidthChart({ data }: { data: BandwidthPoint[] }) {
               <Area
                 type="monotone"
                 dataKey="rxBps"
-                stroke="#6366f1"
+                stroke="#2dd4bf"
                 fill="url(#rxGrad)"
                 strokeWidth={2}
               />

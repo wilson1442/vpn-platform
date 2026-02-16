@@ -5,6 +5,11 @@ const config: Config = {
   content: ['./src/**/*.{ts,tsx}'],
   theme: {
     extend: {
+      fontFamily: {
+        heading: ['var(--font-sora)', 'system-ui', 'sans-serif'],
+        body: ['var(--font-dm-sans)', 'system-ui', 'sans-serif'],
+        mono: ['var(--font-mono)', 'monospace'],
+      },
       colors: {
         border: 'hsl(var(--border))',
         input: 'hsl(var(--input))',

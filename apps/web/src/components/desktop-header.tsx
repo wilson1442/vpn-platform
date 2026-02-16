@@ -27,7 +27,7 @@ export function DesktopHeader() {
   };
 
   return (
-    <header className="hidden h-16 shrink-0 items-center justify-end border-b border-border/40 bg-background/50 backdrop-blur-sm px-6 md:flex">
+    <header className="hidden h-16 shrink-0 items-center justify-end border-b border-border/20 bg-background/50 backdrop-blur-sm px-6 md:flex">
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <button className="flex items-center gap-3 rounded-full px-2 py-1.5 outline-none ring-offset-background transition-all duration-200 hover:bg-accent/50 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2">
@@ -59,7 +59,7 @@ export function DesktopHeader() {
             </Link>
           </DropdownMenuItem>
           <DropdownMenuSeparator />
-          <DropdownMenuItem onClick={handleLogout} className="cursor-pointer text-red-400 focus:text-red-400">
+          <DropdownMenuItem onClick={handleLogout} className="cursor-pointer text-rose-400 focus:text-rose-400">
             Log out
           </DropdownMenuItem>
         </DropdownMenuContent>

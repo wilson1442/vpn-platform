@@ -55,20 +55,35 @@ export default function ResellerVpnNodesPage() {
 
   return (
     <div>
-      <h1 className="mb-6 text-2xl font-bold">VPN Nodes</h1>
+      <h1 className="font-heading text-2xl font-bold bg-gradient-to-r from-cyan-400 to-teal-400 bg-clip-text text-transparent mb-6">VPN Nodes</h1>
 
       {editingId && (
-        <form onSubmit={handleEdit} className="mb-6 space-y-3 rounded-xl border border-indigo-500/20 bg-indigo-500/5 p-5 backdrop-blur-sm">
-          <h3 className="font-semibold">Edit Node</h3>
-          <Input placeholder="Node Name" value={editForm.name} onChange={(e) => setEditForm({ ...editForm, name: e.target.value })} required />
-          <Input placeholder="Hostname" value={editForm.hostname} onChange={(e) => setEditForm({ ...editForm, hostname: e.target.value })} required />
+        <form onSubmit={handleEdit} className="mb-6 rounded-xl border border-border/20 bg-card/40 backdrop-blur-sm p-5 space-y-4">
+          <h3 className="font-heading text-sm font-semibold text-cyan-400">Edit Node</h3>
+          <div>
+            <label className="text-xs font-medium uppercase tracking-wider text-muted-foreground mb-1.5 block">Node Name</label>
+            <Input placeholder="Node Name" value={editForm.name} onChange={(e) => setEditForm({ ...editForm, name: e.target.value })} required />
+          </div>
+          <div>
+            <label className="text-xs font-medium uppercase tracking-wider text-muted-foreground mb-1.5 block">Hostname</label>
+            <Input placeholder="Hostname" value={editForm.hostname} onChange={(e) => setEditForm({ ...editForm, hostname: e.target.value })} required />
+          </div>
           <div className="grid grid-cols-3 gap-2">
-            <Input placeholder="VPN Port" type="number" value={editForm.port} onChange={(e) => setEditForm({ ...editForm, port: e.target.value })} />
-            <Input placeholder="Agent Port" type="number" value={editForm.agentPort} onChange={(e) => setEditForm({ ...editForm, agentPort: e.target.value })} />
-            <Input placeholder="Mgmt Port" type="number" value={editForm.mgmtPort} onChange={(e) => setEditForm({ ...editForm, mgmtPort: e.target.value })} />
+            <div>
+              <label className="text-xs font-medium uppercase tracking-wider text-muted-foreground mb-1.5 block">VPN Port</label>
+              <Input placeholder="VPN Port" type="number" value={editForm.port} onChange={(e) => setEditForm({ ...editForm, port: e.target.value })} />
+            </div>
+            <div>
+              <label className="text-xs font-medium uppercase tracking-wider text-muted-foreground mb-1.5 block">Agent Port</label>
+              <Input placeholder="Agent Port" type="number" value={editForm.agentPort} onChange={(e) => setEditForm({ ...editForm, agentPort: e.target.value })} />
+            </div>
+            <div>
+              <label className="text-xs font-medium uppercase tracking-wider text-muted-foreground mb-1.5 block">Mgmt Port</label>
+              <Input placeholder="Mgmt Port" type="number" value={editForm.mgmtPort} onChange={(e) => setEditForm({ ...editForm, mgmtPort: e.target.value })} />
+            </div>
           </div>
           <div className="flex gap-2">
-            <Button type="submit">Save</Button>
+            <Button type="submit" className="bg-cyan-600 hover:bg-cyan-500 text-white shadow-lg shadow-cyan-500/15">Save</Button>
             <Button type="button" variant="outline" onClick={() => setEditingId(null)}>Cancel</Button>
           </div>
         </form>
@@ -76,18 +91,18 @@ export default function ResellerVpnNodesPage() {
 
       <DataTable
         columns={[
-          { key: 'name', header: 'Name' },
-          { key: 'hostname', header: 'Hostname' },
-          { key: 'port', header: 'Port' },
+          { key: 'name', header: 'Name', render: (n) => <span className="font-body font-medium">{n.name}</span> },
+          { key: 'hostname', header: 'Hostname', render: (n) => <span className="font-mono text-xs text-cyan-400/70">{n.hostname}</span> },
+          { key: 'port', header: 'Port', render: (n) => <span className="font-mono text-xs">{n.port}</span> },
           { key: 'status', header: 'Status', render: (n) => (
-            <Badge variant={isNodeOnline(n) ? 'default' : 'destructive'}>
-              {isNodeOnline(n) ? 'Online' : 'Offline'}
-            </Badge>
+            isNodeOnline(n)
+              ? <Badge className="bg-emerald-500/15 text-emerald-400 border-emerald-500/30 hover:bg-emerald-500/20">Online</Badge>
+              : <Badge className="bg-rose-500/15 text-rose-400 border-rose-500/30 hover:bg-rose-500/20">Offline</Badge>
           )},
           { key: 'actions', header: 'Actions', render: (n) => (
             <div className="flex gap-2">
-              <Button variant="outline" size="sm" onClick={() => startEdit(n)}>Edit</Button>
-              <Button variant="destructive" size="sm" onClick={() => handleDelete(n)}>Delete</Button>
+              <Button variant="outline" size="sm" className="hover:text-cyan-400 hover:bg-cyan-500/10" onClick={() => startEdit(n)}>Edit</Button>
+              <Button variant="ghost" size="sm" className="text-rose-400 hover:text-rose-300 hover:bg-rose-500/10" onClick={() => handleDelete(n)}>Delete</Button>
             </div>
           )},
         ]}

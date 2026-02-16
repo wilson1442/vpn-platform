@@ -128,10 +128,10 @@ export default function VpnNodesPage() {
   };
 
   const getInstallBadge = (status: string | null) => {
-    if (status === 'installed') return <Badge variant="default">Installed</Badge>;
-    if (status === 'installing') return <Badge variant="warning" className="animate-pulse">Installing...</Badge>;
-    if (status === 'failed') return <Badge variant="destructive">Failed</Badge>;
-    return <Badge variant="outline">Not Installed</Badge>;
+    if (status === 'installed') return <Badge className="border-emerald-500/30 bg-emerald-500/10 text-emerald-400">Installed</Badge>;
+    if (status === 'installing') return <Badge className="animate-pulse border-amber-500/30 bg-amber-500/10 text-amber-400">Installing...</Badge>;
+    if (status === 'failed') return <Badge className="border-rose-500/30 bg-rose-500/10 text-rose-400">Failed</Badge>;
+    return <Badge variant="outline" className="border-border/30 text-muted-foreground">Not Installed</Badge>;
   };
 
   const openSshDialog = (node: any, action: ActionType) => {
@@ -235,65 +235,91 @@ export default function VpnNodesPage() {
 
   return (
     <div>
-      <div className="mb-4 flex items-center justify-between">
-        <h1 className="text-2xl font-bold">VPN Nodes</h1>
-        <Button onClick={() => setShowCreate(!showCreate)}>
+      <div className="mb-6 flex items-center justify-between">
+        <h1 className="font-heading text-2xl font-bold bg-gradient-to-r from-cyan-400 to-teal-400 bg-clip-text text-transparent">
+          VPN Nodes
+        </h1>
+        <Button
+          onClick={() => setShowCreate(!showCreate)}
+          className={showCreate ? 'border border-border/30 bg-card/40 text-muted-foreground hover:text-white' : 'bg-cyan-600 hover:bg-cyan-500 text-white shadow-lg shadow-cyan-500/15'}
+        >
           {showCreate ? 'Cancel' : 'Add Node'}
         </Button>
       </div>
 
       {showCreate && (
-        <form onSubmit={handleCreate} className="mb-6 space-y-3 rounded-xl border border-border/40 bg-card/30 p-5 backdrop-blur-sm">
-          <Input placeholder="Node Name" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} required />
-          <Input placeholder="Hostname" value={form.hostname} onChange={(e) => setForm({ ...form, hostname: e.target.value })} required />
-          <div className="grid grid-cols-4 gap-2">
-            <Input placeholder="VPN Port" type="number" value={form.port} onChange={(e) => setForm({ ...form, port: e.target.value })} />
-            <Input placeholder="Agent Port" type="number" value={form.agentPort} onChange={(e) => setForm({ ...form, agentPort: e.target.value })} />
-            <Input placeholder="Mgmt Port" type="number" value={form.mgmtPort} onChange={(e) => setForm({ ...form, mgmtPort: e.target.value })} />
-            <Input placeholder="SSH Port" type="number" value={form.sshPort} onChange={(e) => setForm({ ...form, sshPort: e.target.value })} />
+        <form onSubmit={handleCreate} className="mb-6 rounded-xl border border-border/20 bg-card/40 backdrop-blur-sm p-5 space-y-4">
+          <p className="font-heading text-sm font-semibold text-cyan-400">New Node Configuration</p>
+          <div className="space-y-3">
+            <div>
+              <label className="block text-xs font-medium uppercase tracking-wider text-muted-foreground mb-1.5">Node Name</label>
+              <Input placeholder="e.g. us-east-1" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} required />
+            </div>
+            <div>
+              <label className="block text-xs font-medium uppercase tracking-wider text-muted-foreground mb-1.5">Hostname</label>
+              <Input placeholder="e.g. 10.0.0.1" value={form.hostname} onChange={(e) => setForm({ ...form, hostname: e.target.value })} required />
+            </div>
           </div>
-          <Button type="submit">Create</Button>
+          <div className="grid grid-cols-4 gap-3">
+            <div>
+              <label className="block text-xs font-medium uppercase tracking-wider text-muted-foreground mb-1.5">VPN Port</label>
+              <Input placeholder="1194" type="number" value={form.port} onChange={(e) => setForm({ ...form, port: e.target.value })} />
+            </div>
+            <div>
+              <label className="block text-xs font-medium uppercase tracking-wider text-muted-foreground mb-1.5">Agent Port</label>
+              <Input placeholder="3001" type="number" value={form.agentPort} onChange={(e) => setForm({ ...form, agentPort: e.target.value })} />
+            </div>
+            <div>
+              <label className="block text-xs font-medium uppercase tracking-wider text-muted-foreground mb-1.5">Mgmt Port</label>
+              <Input placeholder="7505" type="number" value={form.mgmtPort} onChange={(e) => setForm({ ...form, mgmtPort: e.target.value })} />
+            </div>
+            <div>
+              <label className="block text-xs font-medium uppercase tracking-wider text-muted-foreground mb-1.5">SSH Port</label>
+              <Input placeholder="22" type="number" value={form.sshPort} onChange={(e) => setForm({ ...form, sshPort: e.target.value })} />
+            </div>
+          </div>
+          <Button type="submit" className="bg-cyan-600 hover:bg-cyan-500 text-white shadow-lg shadow-cyan-500/15">Create Node</Button>
         </form>
       )}
 
       <Dialog open={!!editTarget} onOpenChange={(open) => { if (!open) setEditTarget(null); }}>
-        <DialogContent>
+        <DialogContent className="rounded-xl border border-border/20 bg-card/40 backdrop-blur-sm">
           <DialogHeader>
-            <DialogTitle>Edit VPN Node</DialogTitle>
-            <DialogDescription>Update configuration for {editTarget?.name}</DialogDescription>
+            <DialogTitle className="font-heading text-lg font-bold bg-gradient-to-r from-cyan-400 to-teal-400 bg-clip-text text-transparent">Edit VPN Node</DialogTitle>
+            <DialogDescription className="font-body text-muted-foreground">Update configuration for {editTarget?.name}</DialogDescription>
           </DialogHeader>
           <form onSubmit={handleEdit} className="space-y-4">
             <div>
-              <label className="mb-1 block text-sm font-medium">Node Name</label>
+              <label className="block text-xs font-medium uppercase tracking-wider text-muted-foreground mb-1.5">Node Name</label>
               <Input value={editForm.name} onChange={(e) => setEditForm({ ...editForm, name: e.target.value })} required />
             </div>
             <div>
-              <label className="mb-1 block text-sm font-medium">Hostname</label>
+              <label className="block text-xs font-medium uppercase tracking-wider text-muted-foreground mb-1.5">Hostname</label>
               <Input value={editForm.hostname} onChange={(e) => setEditForm({ ...editForm, hostname: e.target.value })} required />
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="mb-1 block text-sm font-medium">VPN Port</label>
+                <label className="block text-xs font-medium uppercase tracking-wider text-muted-foreground mb-1.5">VPN Port</label>
                 <Input type="number" value={editForm.port} onChange={(e) => setEditForm({ ...editForm, port: e.target.value })} />
               </div>
               <div>
-                <label className="mb-1 block text-sm font-medium">Agent Port</label>
+                <label className="block text-xs font-medium uppercase tracking-wider text-muted-foreground mb-1.5">Agent Port</label>
                 <Input type="number" value={editForm.agentPort} onChange={(e) => setEditForm({ ...editForm, agentPort: e.target.value })} />
               </div>
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="mb-1 block text-sm font-medium">Management Port</label>
+                <label className="block text-xs font-medium uppercase tracking-wider text-muted-foreground mb-1.5">Management Port</label>
                 <Input type="number" value={editForm.mgmtPort} onChange={(e) => setEditForm({ ...editForm, mgmtPort: e.target.value })} />
               </div>
               <div>
-                <label className="mb-1 block text-sm font-medium">SSH Port</label>
+                <label className="block text-xs font-medium uppercase tracking-wider text-muted-foreground mb-1.5">SSH Port</label>
                 <Input type="number" value={editForm.sshPort} onChange={(e) => setEditForm({ ...editForm, sshPort: e.target.value })} />
               </div>
             </div>
             <DialogFooter>
-              <Button type="button" variant="outline" onClick={() => setEditTarget(null)}>Cancel</Button>
-              <Button type="submit">Save</Button>
+              <Button type="button" variant="outline" onClick={() => setEditTarget(null)} className="border-border/30">Cancel</Button>
+              <Button type="submit" className="bg-cyan-600 hover:bg-cyan-500 text-white shadow-lg shadow-cyan-500/15">Save</Button>
             </DialogFooter>
           </form>
         </DialogContent>
@@ -301,28 +327,29 @@ export default function VpnNodesPage() {
 
       {/* SSH Credentials Dialog */}
       {sshDialog && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-          <div className="w-full max-w-md rounded-xl border border-border/50 bg-background/95 p-6 shadow-xl backdrop-blur-xl">
-            <h3 className="mb-4 text-lg font-semibold">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
+          <div className="w-full max-w-md rounded-xl border border-border/20 bg-card/40 backdrop-blur-sm p-6 shadow-2xl shadow-cyan-500/5">
+            <h3 className="font-heading text-lg font-bold bg-gradient-to-r from-cyan-400 to-teal-400 bg-clip-text text-transparent mb-4">
               {actionLabel(sshDialog.action)} — {sshDialog.nodeName}
             </h3>
             {sshDialog.action === 'reinstall' && (
-              <div className="mb-4 rounded border border-red-300 bg-red-50 p-3 text-sm text-red-700 dark:border-red-800 dark:bg-red-950 dark:text-red-300">
+              <div className="mb-4 rounded-lg border border-rose-500/30 bg-rose-500/10 p-3 text-sm font-body text-rose-300">
                 This will stop all services, remove all VPN configuration, and perform a fresh installation.
               </div>
             )}
-            <form onSubmit={handleSshSubmit} className="space-y-3">
+            <form onSubmit={handleSshSubmit} className="space-y-4">
+              <p className="font-heading text-sm font-semibold text-cyan-400">Connection Details</p>
               <div>
-                <label className="mb-1 block text-sm font-medium">SSH Host</label>
+                <label className="block text-xs font-medium uppercase tracking-wider text-muted-foreground mb-1.5">SSH Host</label>
                 <Input
                   value={sshDialog.hostname}
                   onChange={(e) => setSshDialog({ ...sshDialog, hostname: e.target.value })}
                   required
                 />
               </div>
-              <div className="grid grid-cols-2 gap-2">
+              <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="mb-1 block text-sm font-medium">SSH Port</label>
+                  <label className="block text-xs font-medium uppercase tracking-wider text-muted-foreground mb-1.5">SSH Port</label>
                   <Input
                     type="number"
                     value={sshDialog.sshPort}
@@ -330,7 +357,7 @@ export default function VpnNodesPage() {
                   />
                 </div>
                 <div>
-                  <label className="mb-1 block text-sm font-medium">Username</label>
+                  <label className="block text-xs font-medium uppercase tracking-wider text-muted-foreground mb-1.5">Username</label>
                   <Input
                     value={sshForm.username}
                     onChange={(e) => setSshForm({ ...sshForm, username: e.target.value })}
@@ -338,21 +365,21 @@ export default function VpnNodesPage() {
                 </div>
               </div>
               <div>
-                <label className="mb-1 block text-sm font-medium">Auth Method</label>
+                <label className="block text-xs font-medium uppercase tracking-wider text-muted-foreground mb-1.5">Auth Method</label>
                 <div className="flex gap-2">
                   <Button
                     type="button"
-                    variant={sshForm.authMethod === 'password' ? 'default' : 'outline'}
                     size="sm"
                     onClick={() => setSshForm({ ...sshForm, authMethod: 'password' })}
+                    className={sshForm.authMethod === 'password' ? 'bg-cyan-600 hover:bg-cyan-500 text-white shadow-lg shadow-cyan-500/15' : 'border border-border/30 bg-card/60 text-muted-foreground hover:text-cyan-400 hover:bg-cyan-500/10'}
                   >
                     Password
                   </Button>
                   <Button
                     type="button"
-                    variant={sshForm.authMethod === 'key' ? 'default' : 'outline'}
                     size="sm"
                     onClick={() => setSshForm({ ...sshForm, authMethod: 'key' })}
+                    className={sshForm.authMethod === 'key' ? 'bg-cyan-600 hover:bg-cyan-500 text-white shadow-lg shadow-cyan-500/15' : 'border border-border/30 bg-card/60 text-muted-foreground hover:text-cyan-400 hover:bg-cyan-500/10'}
                   >
                     SSH Key
                   </Button>
@@ -360,7 +387,7 @@ export default function VpnNodesPage() {
               </div>
               {sshForm.authMethod === 'password' ? (
                 <div>
-                  <label className="mb-1 block text-sm font-medium">Password</label>
+                  <label className="block text-xs font-medium uppercase tracking-wider text-muted-foreground mb-1.5">Password</label>
                   <Input
                     type="password"
                     value={sshForm.password}
@@ -370,9 +397,9 @@ export default function VpnNodesPage() {
                 </div>
               ) : (
                 <div>
-                  <label className="mb-1 block text-sm font-medium">Private Key</label>
+                  <label className="block text-xs font-medium uppercase tracking-wider text-muted-foreground mb-1.5">Private Key</label>
                   <textarea
-                    className="w-full rounded-lg border border-input bg-background/50 p-2 font-mono text-xs"
+                    className="w-full rounded-lg font-mono bg-[#0a0e1a] border border-border/20 p-3 text-xs text-cyan-400/70"
                     rows={6}
                     placeholder="-----BEGIN OPENSSH PRIVATE KEY-----"
                     value={sshForm.privateKey}
@@ -382,10 +409,10 @@ export default function VpnNodesPage() {
                 </div>
               )}
               <div className="flex gap-2 pt-2">
-                <Button type="submit">
+                <Button type="submit" className="bg-cyan-600 hover:bg-cyan-500 text-white shadow-lg shadow-cyan-500/15">
                   {actionLabel(sshDialog.action)}
                 </Button>
-                <Button type="button" variant="outline" onClick={closeSshDialog}>
+                <Button type="button" onClick={closeSshDialog} className="border border-border/30 bg-card/60 text-muted-foreground hover:text-white">
                   Cancel
                 </Button>
               </div>
@@ -396,38 +423,38 @@ export default function VpnNodesPage() {
 
       {/* Terminal Log Viewer */}
       {terminal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-          <div className="flex h-[80vh] w-full max-w-3xl flex-col rounded-xl border border-border/40 bg-background shadow-xl">
-            <div className="flex items-center justify-between border-b border-border/40 px-4 py-3">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
+          <div className="flex h-[80vh] w-full max-w-3xl flex-col rounded-xl border border-border/20 bg-card/40 backdrop-blur-sm shadow-2xl shadow-cyan-500/5">
+            <div className="flex items-center justify-between border-b border-border/20 px-5 py-3">
               <div className="flex items-center gap-3">
-                <span className="font-mono text-sm text-gray-300">
+                <span className="font-heading text-sm font-semibold text-cyan-400">
                   {actionLabel(terminal.action)} Logs
                 </span>
                 {terminal.status === 'running' && (
-                  <Badge variant="warning" className="animate-pulse">Running...</Badge>
+                  <Badge className="animate-pulse border-amber-500/30 bg-amber-500/10 text-amber-400">Running...</Badge>
                 )}
                 {terminal.status === 'success' && (
-                  <Badge variant="default">Success</Badge>
+                  <Badge className="border-emerald-500/30 bg-emerald-500/10 text-emerald-400">Success</Badge>
                 )}
                 {terminal.status === 'failed' && (
-                  <Badge variant="destructive">Failed</Badge>
+                  <Badge className="border-rose-500/30 bg-rose-500/10 text-rose-400">Failed</Badge>
                 )}
               </div>
-              <Button variant="ghost" size="sm" onClick={closeTerminal} className="text-gray-400 hover:text-white">
+              <Button size="sm" onClick={closeTerminal} className="hover:text-cyan-400 hover:bg-cyan-500/10 text-muted-foreground">
                 Close
               </Button>
             </div>
             <div
               ref={terminalRef}
-              className="flex-1 overflow-auto p-4 font-mono text-sm leading-relaxed text-green-400"
+              className="flex-1 overflow-auto font-mono bg-[#0a0e1a] border-t-0 p-4 text-sm leading-relaxed text-emerald-400"
             >
               {terminal.logs.map((line, i) => (
-                <div key={i} className={line.startsWith('[stderr]') ? 'text-yellow-400' : line.startsWith('ERROR') ? 'text-red-400' : line.startsWith('===') ? 'text-white font-bold' : ''}>
+                <div key={i} className={line.startsWith('[stderr]') ? 'text-amber-400' : line.startsWith('ERROR') ? 'text-rose-400' : line.startsWith('===') ? 'text-cyan-300 font-bold' : ''}>
                   {line}
                 </div>
               ))}
               {terminal.status === 'running' && (
-                <div className="animate-pulse text-gray-500">_</div>
+                <div className="animate-pulse text-cyan-400/40">_</div>
               )}
             </div>
           </div>
@@ -436,37 +463,47 @@ export default function VpnNodesPage() {
 
       <DataTable
         columns={[
-          { key: 'name', header: 'Name' },
-          { key: 'hostname', header: 'Hostname' },
-          { key: 'port', header: 'Port' },
+          { key: 'name', header: 'Name', render: (n) => (
+            <span className="font-heading font-semibold text-sm">{n.name}</span>
+          )},
+          { key: 'hostname', header: 'Hostname', render: (n) => (
+            <span className="font-mono text-xs text-cyan-400/70">{n.hostname}</span>
+          )},
+          { key: 'port', header: 'Port', render: (n) => (
+            <span className="font-mono text-xs">{n.port}</span>
+          )},
           { key: 'status', header: 'Status', render: (n) => (
-            <Badge variant={isNodeOnline(n) ? 'default' : 'destructive'}>
-              {isNodeOnline(n) ? 'Online' : 'Offline'}
-            </Badge>
+            isNodeOnline(n)
+              ? <Badge className="border-emerald-500/30 bg-emerald-500/10 text-emerald-400">Online</Badge>
+              : <Badge className="border-rose-500/30 bg-rose-500/10 text-rose-400">Offline</Badge>
           )},
           { key: 'installStatus', header: 'Install', render: (n) => getInstallBadge(n.installStatus) },
-          { key: 'crlVersion', header: 'CRL Version' },
-          { key: 'agentToken', header: 'Agent Token', render: (n) => <code className="text-xs">{n.agentToken?.substring(0, 8)}...</code> },
-          { key: 'lastHeartbeatAt', header: 'Last Heartbeat', render: (n) => n.lastHeartbeatAt ? new Date(n.lastHeartbeatAt).toLocaleString() : 'Never' },
+          { key: 'crlVersion', header: 'CRL Version', render: (n) => (
+            <span className="font-mono text-xs">{n.crlVersion}</span>
+          )},
+          { key: 'agentToken', header: 'Agent Token', render: (n) => <code className="font-mono text-xs text-cyan-400/70">{n.agentToken?.substring(0, 8)}...</code> },
+          { key: 'lastHeartbeatAt', header: 'Last Heartbeat', render: (n) => (
+            <span className="font-mono text-xs">{n.lastHeartbeatAt ? new Date(n.lastHeartbeatAt).toLocaleString() : 'Never'}</span>
+          )},
           { key: 'actions', header: 'Actions', render: (n) => (
             <div className="flex gap-1">
-              <Button variant="outline" size="sm" onClick={() => startEdit(n)}>Edit</Button>
+              <Button variant="outline" size="sm" onClick={() => startEdit(n)} className="hover:text-cyan-400 hover:bg-cyan-500/10 border-border/30 text-xs">Edit</Button>
               {(!n.installStatus || n.installStatus === 'failed') && (
-                <Button variant="outline" size="sm" onClick={() => openSshDialog(n, 'install')} className="text-blue-600">
+                <Button variant="outline" size="sm" onClick={() => openSshDialog(n, 'install')} className="text-cyan-400 hover:text-cyan-300 hover:bg-cyan-500/10 border-border/30 text-xs">
                   Install
                 </Button>
               )}
               {n.installStatus === 'installed' && (
                 <>
-                  <Button variant="outline" size="sm" onClick={() => openSshDialog(n, 'restart')} className="text-green-600">
+                  <Button variant="outline" size="sm" onClick={() => openSshDialog(n, 'restart')} className="text-emerald-400 hover:text-emerald-300 hover:bg-emerald-500/10 border-border/30 text-xs">
                     Restart
                   </Button>
-                  <Button variant="outline" size="sm" onClick={() => openSshDialog(n, 'reinstall')} className="text-orange-600">
+                  <Button variant="outline" size="sm" onClick={() => openSshDialog(n, 'reinstall')} className="text-amber-400 hover:text-amber-300 hover:bg-amber-500/10 border-border/30 text-xs">
                     Reinstall
                   </Button>
                 </>
               )}
-              <Button variant="destructive" size="sm" onClick={() => handleDelete(n)}>Delete</Button>
+              <Button size="sm" onClick={() => handleDelete(n)} className="text-rose-400 hover:text-rose-300 hover:bg-rose-500/10 text-xs">Delete</Button>
             </div>
           )},
         ]}

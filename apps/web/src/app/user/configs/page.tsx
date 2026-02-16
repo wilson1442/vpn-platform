@@ -129,16 +129,18 @@ export default function ConfigsPage() {
   };
 
   return (
-    <div>
-      <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+    <div className="space-y-8">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <h1 className="text-2xl font-bold">VPN Profiles</h1>
-          <p className="mt-1 text-muted-foreground">
+          <h1 className="font-heading text-2xl font-bold bg-gradient-to-r from-cyan-400 to-teal-400 bg-clip-text text-transparent">
+            VPN Profiles
+          </h1>
+          <p className="mt-1 font-body text-sm text-muted-foreground">
             Download a profile for any server below and import it into your OpenVPN client.
           </p>
         </div>
         <Button
-          className="w-full sm:w-auto"
+          className="w-full sm:w-auto bg-cyan-600 hover:bg-cyan-500 text-white shadow-lg shadow-cyan-500/15"
           onClick={generateAllUrls}
           disabled={generatingAll || nodes.length === 0}
         >
@@ -146,79 +148,83 @@ export default function ConfigsPage() {
         </Button>
       </div>
 
-      <div className="mb-6 space-y-3">
-        <div className="rounded-xl border border-indigo-500/20 bg-indigo-500/5 p-5 backdrop-blur-sm">
-          <p className="text-sm">
-            <strong>Authentication:</strong> When connecting, use your platform username and password.
+      <div className="space-y-3">
+        <div className="rounded-xl border border-cyan-500/20 bg-cyan-500/5 p-5 backdrop-blur-sm">
+          <p className="font-body text-sm text-foreground/80">
+            <strong className="font-heading text-cyan-400">Authentication:</strong>{' '}
+            When connecting, use your platform username and password.
             No separate certificates are needed.
           </p>
         </div>
         <div className="rounded-xl border border-emerald-500/20 bg-emerald-500/5 p-5 backdrop-blur-sm">
-          <p className="text-sm">
-            <strong>Import via URL:</strong> Most OpenVPN apps support importing profiles via URL.
+          <p className="font-body text-sm text-foreground/80">
+            <strong className="font-heading text-emerald-400">Import via URL:</strong>{' '}
+            Most OpenVPN apps support importing profiles via URL.
             Click &quot;Copy URL&quot; next to a server and paste it in your app&apos;s URL import field.
           </p>
         </div>
       </div>
 
       {nodes.length > 0 ? (
-        <div className="overflow-hidden rounded-lg border">
-          <table className="w-full text-sm">
-            <thead className="bg-muted/50">
-              <tr>
-                <th className="px-4 py-3 text-left font-medium">Server</th>
-                <th className="px-4 py-3 text-left font-medium">Hostname</th>
-                <th className="px-4 py-3 text-left font-medium">Port</th>
-                <th className="px-4 py-3 text-right font-medium">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y">
-              {nodes.map((node) => (
-                <tr key={node.id}>
-                  <td className="px-4 py-3 font-medium">{node.name}</td>
-                  <td className="px-4 py-3 text-muted-foreground">
-                    <code className="text-sm">{node.hostname}</code>
-                  </td>
-                  <td className="px-4 py-3 text-muted-foreground">{node.port}</td>
-                  <td className="px-4 py-3 text-right">
-                    <div className="flex items-center justify-end gap-2">
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => copyUrl(node.id)}
-                        disabled={loadingUrl === node.id}
-                      >
-                        {loadingUrl === node.id ? '...' : copiedNode === node.id ? 'Copied!' : 'Copy URL'}
-                      </Button>
-                      {shortUrls[node.id] && (
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          onClick={() => regenerateUrl(node.id)}
-                          disabled={loadingUrl === node.id}
-                          title="Regenerate URL"
-                        >
-                          ↻
-                        </Button>
-                      )}
-                      <Button
-                        size="sm"
-                        onClick={() => handleDownload(node)}
-                        disabled={downloading === node.id}
-                      >
-                        {downloading === node.id ? '...' : 'Download'}
-                      </Button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+        <div className="space-y-4">
+          <h2 className="font-heading text-xl font-semibold bg-gradient-to-r from-cyan-400 to-teal-400 bg-clip-text text-transparent">
+            Available Servers
+          </h2>
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {nodes.map((node) => (
+              <div
+                key={node.id}
+                className="rounded-xl border border-border/20 bg-card/40 backdrop-blur-sm p-5 space-y-4 transition-all duration-300 hover:border-cyan-500/20"
+              >
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2">
+                    <div className="h-2 w-2 rounded-full bg-emerald-400 shadow-lg shadow-emerald-400/50 animate-pulse" />
+                    <h3 className="font-heading text-sm font-semibold text-foreground">{node.name}</h3>
+                  </div>
+                  <div className="space-y-1">
+                    <p className="font-mono text-xs text-cyan-400/70">{node.hostname}</p>
+                    <p className="font-mono text-xs text-muted-foreground">Port {node.port}</p>
+                  </div>
+                </div>
+
+                <div className="flex flex-wrap items-center gap-2">
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => copyUrl(node.id)}
+                    disabled={loadingUrl === node.id}
+                    className="flex-1"
+                  >
+                    {loadingUrl === node.id ? '...' : copiedNode === node.id ? 'Copied!' : 'Copy URL'}
+                  </Button>
+                  {shortUrls[node.id] && (
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => regenerateUrl(node.id)}
+                      disabled={loadingUrl === node.id}
+                      title="Regenerate URL"
+                    >
+                      ↻
+                    </Button>
+                  )}
+                  <Button
+                    size="sm"
+                    onClick={() => handleDownload(node)}
+                    disabled={downloading === node.id}
+                    className="flex-1 bg-cyan-600 hover:bg-cyan-500 text-white shadow-lg shadow-cyan-500/15"
+                  >
+                    {downloading === node.id ? '...' : 'Download'}
+                  </Button>
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
       ) : (
-        <div className="rounded-lg border border-dashed p-8 text-center">
-          <p className="text-muted-foreground">No VPN servers available.</p>
-          <p className="mt-1 text-sm text-muted-foreground">
+        <div className="rounded-xl border border-border/20 border-dashed bg-card/40 backdrop-blur-sm p-12 text-center">
+          <p className="font-body text-muted-foreground">No VPN servers available.</p>
+          <p className="mt-1 font-body text-sm text-muted-foreground">
             Contact your administrator to set up VPN nodes.
           </p>
         </div>

@@ -87,9 +87,9 @@ export function ManageCreditsDialog({
         </DialogHeader>
 
         <div className="space-y-4">
-          <div className="rounded-xl bg-indigo-500/5 border border-indigo-500/10 p-4 text-center">
+          <div className="rounded-xl bg-cyan-500/5 border border-cyan-500/10 p-4 text-center">
             <div className="text-sm text-muted-foreground">Current Balance</div>
-            <div className="text-2xl font-bold text-indigo-400">{currentBalance} credits</div>
+            <div className="text-2xl font-bold font-mono text-cyan-400">{currentBalance} credits</div>
           </div>
 
           <div className="flex gap-2">
@@ -129,17 +129,17 @@ export function ManageCreditsDialog({
               <svg className="h-4 w-4 text-muted-foreground" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" />
               </svg>
-              <span className={afterBalance < 0 ? 'font-semibold text-red-400' : 'font-semibold text-emerald-400'}>
+              <span className={afterBalance < 0 ? 'font-semibold text-rose-400' : 'font-semibold text-emerald-400'}>
                 {afterBalance} credits
               </span>
             </div>
           )}
 
           {mode === 'subtract' && numAmount > 0 && afterBalance < 0 && (
-            <p className="text-sm text-red-400">Insufficient balance for this deduction.</p>
+            <p className="text-sm text-rose-400">Insufficient balance for this deduction.</p>
           )}
 
-          {error && <p className="text-sm text-red-400">{error}</p>}
+          {error && <p className="text-sm text-rose-400">{error}</p>}
           {success && <p className="text-sm text-emerald-400">{success}</p>}
         </div>
 

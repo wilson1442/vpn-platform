@@ -39,38 +39,59 @@ export default function BillingPage() {
 
   return (
     <div>
-      <div className="mb-4 flex items-center justify-between">
-        <h1 className="text-2xl font-bold">Billing</h1>
-        <Button onClick={() => setShowCreate(!showCreate)}>
+      <div className="mb-6 flex items-center justify-between">
+        <div>
+          <h1 className="font-heading text-2xl font-bold text-gradient bg-gradient-to-r from-cyan-400 to-teal-400">Billing</h1>
+          <p className="mt-1 text-sm text-muted-foreground">Manage invoices and payments</p>
+        </div>
+        <Button
+          onClick={() => setShowCreate(!showCreate)}
+          className="bg-cyan-600 hover:bg-cyan-500 text-white shadow-lg shadow-cyan-500/10"
+        >
           {showCreate ? 'Cancel' : 'Create Invoice'}
         </Button>
       </div>
 
       {showCreate && (
-        <form onSubmit={handleCreate} className="mb-6 space-y-3 rounded-lg border p-4">
-          <Input placeholder="Reseller ID" value={form.resellerId} onChange={(e) => setForm({ ...form, resellerId: e.target.value })} required />
-          <Input placeholder="Amount (cents)" type="number" value={form.amountCents} onChange={(e) => setForm({ ...form, amountCents: e.target.value })} required />
-          <Button type="submit">Create Invoice</Button>
+        <form onSubmit={handleCreate} className="mb-6 space-y-4 rounded-xl border border-border/20 bg-card/40 p-5 backdrop-blur-sm">
+          <div>
+            <label className="mb-1.5 block text-xs font-medium uppercase tracking-wider text-muted-foreground">Reseller ID</label>
+            <Input placeholder="Enter reseller ID" value={form.resellerId} onChange={(e) => setForm({ ...form, resellerId: e.target.value })} required className="font-mono text-sm" />
+          </div>
+          <div>
+            <label className="mb-1.5 block text-xs font-medium uppercase tracking-wider text-muted-foreground">Amount (cents)</label>
+            <Input placeholder="e.g. 1000 = $10.00" type="number" value={form.amountCents} onChange={(e) => setForm({ ...form, amountCents: e.target.value })} required className="font-mono text-sm" />
+          </div>
+          <Button type="submit" className="bg-cyan-600 hover:bg-cyan-500 text-white">Create Invoice</Button>
         </form>
       )}
 
       <DataTable
         columns={[
-          { key: 'id', header: 'ID', render: (i) => <code className="text-xs">{i.id.substring(0, 8)}</code> },
+          { key: 'id', header: 'ID', render: (i) => <code className="font-mono text-xs text-cyan-400/70">{i.id.substring(0, 8)}</code> },
           { key: 'reseller', header: 'Reseller', render: (i) => i.reseller?.user?.email || i.resellerId },
-          { key: 'amountCents', header: 'Amount', render: (i) => `$${(i.amountCents / 100).toFixed(2)}` },
+          { key: 'amountCents', header: 'Amount', render: (i) => <span className="font-mono font-medium">${(i.amountCents / 100).toFixed(2)}</span> },
           { key: 'status', header: 'Status', render: (i) => (
-            <Badge variant={i.status === 'PAID' ? 'default' : i.status === 'CANCELLED' ? 'destructive' : 'secondary'}>
+            <Badge
+              variant={i.status === 'PAID' ? 'default' : i.status === 'CANCELLED' ? 'destructive' : 'secondary'}
+              className={i.status === 'PAID' ? 'bg-emerald-500/15 text-emerald-400 border-emerald-500/20' : i.status === 'CANCELLED' ? 'bg-rose-500/15 text-rose-400 border-rose-500/20' : 'bg-amber-500/15 text-amber-400 border-amber-500/20'}
+            >
               {i.status}
             </Badge>
           )},
           { key: 'actions', header: 'Actions', render: (i) => (
             <div className="flex gap-2">
-              {i.status === 'PENDING' && <Button size="sm" onClick={() => handlePay(i.id)}>Mark Paid</Button>}
-              <Button variant="destructive" size="sm" onClick={() => handleDelete(i)}>Delete</Button>
+              {i.status === 'PENDING' && (
+                <Button size="sm" onClick={() => handlePay(i.id)} className="bg-emerald-600 hover:bg-emerald-500 text-white text-xs">
+                  Mark Paid
+                </Button>
+              )}
+              <Button variant="ghost" size="sm" onClick={() => handleDelete(i)} className="text-rose-400 hover:text-rose-300 hover:bg-rose-500/10 text-xs">
+                Delete
+              </Button>
             </div>
           )},
-          { key: 'createdAt', header: 'Created', render: (i) => new Date(i.createdAt).toLocaleDateString() },
+          { key: 'createdAt', header: 'Created', render: (i) => <span className="font-mono text-xs text-muted-foreground">{new Date(i.createdAt).toLocaleDateString()}</span> },
         ]}
         data={invoices}
       />

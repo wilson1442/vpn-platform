@@ -175,9 +175,9 @@ export function UpdateWizard({ open, onOpenChange }: UpdateWizardProps) {
                     className={cn(
                       'flex h-8 w-8 items-center justify-center rounded-full border-2 text-sm font-medium transition-all duration-300',
                       isDone && 'border-emerald-500 bg-emerald-500 text-white shadow-lg shadow-emerald-500/20',
-                      isActive && !isDone && 'border-indigo-500 bg-indigo-500 text-white shadow-lg shadow-indigo-500/20',
+                      isActive && !isDone && 'border-cyan-500 bg-cyan-500 text-white shadow-lg shadow-cyan-500/20',
                       !isActive && !isDone && 'border-border/40 text-muted-foreground',
-                      status === 'error' && 'border-red-500 bg-red-500 text-white shadow-lg shadow-red-500/20',
+                      status === 'error' && 'border-rose-500 bg-rose-500 text-white shadow-lg shadow-rose-500/20',
                     )}
                   >
                     {isDone ? (
@@ -214,7 +214,7 @@ export function UpdateWizard({ open, onOpenChange }: UpdateWizardProps) {
 
         {/* Error message */}
         {error && (
-          <div className="rounded-xl border border-red-500/20 bg-red-500/5 p-3 text-sm text-red-400">
+          <div className="rounded-xl border border-rose-500/20 bg-rose-500/5 p-3 text-sm text-rose-400">
             {error}
           </div>
         )}
@@ -234,7 +234,7 @@ export function UpdateWizard({ open, onOpenChange }: UpdateWizardProps) {
 
               {stepStatus.check === 'loading' && (
                 <div className="flex flex-col items-center gap-2 py-8">
-                  <div className="h-8 w-8 animate-spin rounded-full border-2 border-indigo-500 border-t-transparent" />
+                  <div className="h-8 w-8 animate-spin rounded-full border-2 border-cyan-500 border-t-transparent" />
                   <p className="text-muted-foreground">Checking for updates...</p>
                 </div>
               )}
@@ -268,8 +268,8 @@ export function UpdateWizard({ open, onOpenChange }: UpdateWizardProps) {
 
                   {hasUpdates && (
                     <>
-                      <div className="rounded-xl border border-indigo-500/20 bg-indigo-500/5 p-4">
-                        <p className="font-medium text-indigo-400">
+                      <div className="rounded-xl border border-cyan-500/20 bg-cyan-500/5 p-4">
+                        <p className="font-medium text-cyan-400">
                           {updateInfo.behindBy} update{updateInfo.behindBy > 1 ? 's' : ''} available
                         </p>
                       </div>
@@ -320,7 +320,7 @@ export function UpdateWizard({ open, onOpenChange }: UpdateWizardProps) {
 
               {stepStatus.download === 'loading' && (
                 <div className="flex flex-col items-center gap-2 py-8">
-                  <div className="h-8 w-8 animate-spin rounded-full border-2 border-indigo-500 border-t-transparent" />
+                  <div className="h-8 w-8 animate-spin rounded-full border-2 border-cyan-500 border-t-transparent" />
                   <p className="text-muted-foreground">Downloading update...</p>
                 </div>
               )}
@@ -357,7 +357,7 @@ export function UpdateWizard({ open, onOpenChange }: UpdateWizardProps) {
 
               {stepStatus.backup === 'loading' && (
                 <div className="flex flex-col items-center gap-2 py-8">
-                  <div className="h-8 w-8 animate-spin rounded-full border-2 border-indigo-500 border-t-transparent" />
+                  <div className="h-8 w-8 animate-spin rounded-full border-2 border-cyan-500 border-t-transparent" />
                   <p className="text-muted-foreground">Creating database backup...</p>
                 </div>
               )}
@@ -394,7 +394,7 @@ export function UpdateWizard({ open, onOpenChange }: UpdateWizardProps) {
 
               {stepStatus.install === 'loading' && (
                 <div className="flex flex-col items-center gap-2 py-8">
-                  <div className="h-8 w-8 animate-spin rounded-full border-2 border-indigo-500 border-t-transparent" />
+                  <div className="h-8 w-8 animate-spin rounded-full border-2 border-cyan-500 border-t-transparent" />
                   <p className="text-muted-foreground">Installing update...</p>
                   <p className="text-xs text-muted-foreground">This may take several minutes</p>
                 </div>

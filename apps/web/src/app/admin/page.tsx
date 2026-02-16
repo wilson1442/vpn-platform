@@ -26,22 +26,54 @@ export default function AdminDashboard() {
   }, []);
 
   const statCards = [
-    { label: 'Users', value: counts.users, gradient: 'from-indigo-500/10 to-indigo-600/5', color: 'text-indigo-400' },
-    { label: 'Resellers', value: counts.resellers, gradient: 'from-blue-500/10 to-blue-600/5', color: 'text-blue-400' },
-    { label: 'VPN Nodes', value: counts.nodes, gradient: 'from-violet-500/10 to-violet-600/5', color: 'text-violet-400' },
-    { label: 'Online Users', value: stats?.onlineUsers ?? 0, highlight: true, gradient: 'from-cyan-500/10 to-cyan-600/5', color: 'text-cyan-400' },
-    { label: 'VPN Connections', value: stats?.vpnConnections ?? 0, highlight: true, gradient: 'from-emerald-500/10 to-emerald-600/5', color: 'text-emerald-400' },
+    {
+      label: 'Users',
+      value: counts.users,
+      gradient: 'from-cyan-500/10 to-cyan-600/5',
+      color: 'text-cyan-400',
+      borderColor: 'border-l-cyan-400',
+    },
+    {
+      label: 'Resellers',
+      value: counts.resellers,
+      gradient: 'from-teal-500/10 to-teal-600/5',
+      color: 'text-teal-400',
+      borderColor: 'border-l-teal-400',
+    },
+    {
+      label: 'VPN Nodes',
+      value: counts.nodes,
+      gradient: 'from-emerald-500/10 to-emerald-600/5',
+      color: 'text-emerald-400',
+      borderColor: 'border-l-emerald-400',
+    },
+    {
+      label: 'Online Users',
+      value: stats?.onlineUsers ?? 0,
+      highlight: true,
+      gradient: 'from-amber-500/10 to-amber-600/5',
+      color: 'text-amber-400',
+      borderColor: 'border-l-amber-400',
+    },
+    {
+      label: 'VPN Connections',
+      value: stats?.vpnConnections ?? 0,
+      highlight: true,
+      gradient: 'from-violet-500/10 to-violet-600/5',
+      color: 'text-violet-400',
+      borderColor: 'border-l-violet-400',
+    },
   ];
 
   return (
     <div>
-      <h1 className="mb-6 text-3xl font-bold bg-gradient-to-r from-indigo-400 via-blue-400 to-cyan-400 bg-clip-text text-transparent">
+      <h1 className="font-heading mb-6 text-3xl font-bold bg-gradient-to-r from-cyan-400 via-teal-400 to-emerald-400 bg-clip-text text-transparent">
         Admin Dashboard
       </h1>
 
       {/* License warning banner */}
       {!licenseLoading && !valid && (
-        <div className="mb-6 rounded-xl border border-amber-500/30 bg-gradient-to-r from-amber-500/10 to-orange-500/10 backdrop-blur-sm p-4">
+        <div className="mb-6 rounded-xl border border-amber-500/20 bg-amber-500/5 backdrop-blur-sm p-4">
           <div className="flex items-start gap-3">
             <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-amber-500/20 shadow-lg shadow-amber-500/20">
               <svg className="h-4 w-4 text-amber-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -68,14 +100,19 @@ export default function AdminDashboard() {
       )}
 
       {/* Row 1: Stat cards */}
-      <div className="mb-6 grid gap-4 md:grid-cols-2 lg:grid-cols-5">
+      <div className="mb-5 grid gap-3 md:grid-cols-2 lg:grid-cols-5">
         {statCards.map((stat) => (
-          <Card key={stat.label} className={`rounded-xl border-border/50 bg-gradient-to-br ${stat.gradient} backdrop-blur-sm hover:shadow-lg hover:shadow-indigo-500/10 transition-all duration-200`}>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">{stat.label}</CardTitle>
+          <Card
+            key={stat.label}
+            className={`rounded-xl border border-border/20 bg-gradient-to-br ${stat.gradient} bg-card/40 backdrop-blur-sm border-l-2 ${stat.borderColor} hover:shadow-lg hover:shadow-cyan-500/5 transition-all duration-200`}
+          >
+            <CardHeader className="pb-1 pt-3 px-4">
+              <CardTitle className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                {stat.label}
+              </CardTitle>
             </CardHeader>
-            <CardContent>
-              <p className={`text-2xl font-bold ${stat.color}`}>
+            <CardContent className="pb-3 px-4">
+              <p className={`font-mono text-2xl font-bold ${stat.color}`}>
                 {stat.value}
               </p>
             </CardContent>
@@ -85,27 +122,27 @@ export default function AdminDashboard() {
 
       {/* Row 2: Main Server */}
       {stats?.server && (
-        <div className="mb-6">
-          <h2 className="mb-4 text-xl font-semibold bg-gradient-to-r from-indigo-400 to-blue-400 bg-clip-text text-transparent">
+        <div className="mb-5">
+          <h2 className="font-heading mb-3 text-xl font-semibold bg-gradient-to-r from-cyan-400 via-teal-400 to-emerald-400 bg-clip-text text-transparent">
             Main Server
           </h2>
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            <Card className="rounded-xl border-border/50 bg-card/50 backdrop-blur-sm hover:shadow-lg hover:shadow-indigo-500/10 transition-all duration-200">
-              <CardHeader className="pb-2">
+          <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
+            <Card className="rounded-xl border border-border/20 bg-card/40 backdrop-blur-sm hover:shadow-lg hover:shadow-cyan-500/5 transition-all duration-200">
+              <CardHeader className="pb-2 pt-3 px-4">
                 <div className="flex items-center gap-2">
-                  <span className="inline-block h-2.5 w-2.5 rounded-full bg-emerald-500 shadow-lg shadow-emerald-500/50 animate-pulse" />
+                  <span className="inline-block h-2 w-2 rounded-full bg-emerald-400 shadow-lg shadow-emerald-400/50 animate-pulse" />
                   <CardTitle className="text-sm font-medium">API Server</CardTitle>
                 </div>
-                <p className="text-xs text-muted-foreground">{typeof window === 'undefined' ? '' : window.location.hostname}</p>
+                <p className="font-mono text-xs text-muted-foreground">{typeof window === 'undefined' ? '' : window.location.hostname}</p>
               </CardHeader>
-              <CardContent>
+              <CardContent className="pb-3 px-4">
                 <div className="flex justify-around">
                   <Gauge value={stats.server.cpuPercent} label="CPU" color="#f59e0b" />
-                  <Gauge value={stats.server.memPercent} label="RAM" color="#3b82f6" />
+                  <Gauge value={stats.server.memPercent} label="RAM" color="#2dd4bf" />
                   <Gauge
                     value={Math.min(100, Math.round(((stats.server.netRxBps + stats.server.netTxBps) / 125_000_000) * 100))}
                     label="Net"
-                    color="#22c55e"
+                    color="#34d399"
                   />
                 </div>
               </CardContent>
@@ -115,17 +152,17 @@ export default function AdminDashboard() {
       )}
 
       {/* Row 3: Bandwidth chart */}
-      <div className="mb-6">
+      <div className="mb-5">
         <BandwidthChart data={stats?.bandwidthHistory ?? []} />
       </div>
 
       {/* Row 4: Node cards */}
       {stats?.nodes && stats.nodes.length > 0 && (
         <div>
-          <h2 className="mb-4 text-xl font-semibold bg-gradient-to-r from-indigo-400 to-blue-400 bg-clip-text text-transparent">
+          <h2 className="font-heading mb-3 text-xl font-semibold bg-gradient-to-r from-cyan-400 via-teal-400 to-emerald-400 bg-clip-text text-transparent">
             VPN Nodes
           </h2>
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+          <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
             {stats.nodes.map((node) => (
               <NodeCard key={node.nodeId} node={node} />
             ))}
