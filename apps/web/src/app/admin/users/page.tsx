@@ -15,7 +15,7 @@ export default function UsersPage() {
   const [showCreate, setShowCreate] = useState(false);
   const [form, setForm] = useState({ username: '', email: '', password: '', role: 'USER' as string, resellerId: '', packageId: '', expiresAt: '' });
   const [editingId, setEditingId] = useState<string | null>(null);
-  const [editForm, setEditForm] = useState({ username: '', email: '', password: '', role: '', isActive: true, expiresAt: '' });
+  const [editForm, setEditForm] = useState({ username: '', email: '', password: '', role: '', isActive: true, expiresAt: '', maxConnections: '' });
   const [extendingId, setExtendingId] = useState<string | null>(null);
   const [extendPackageId, setExtendPackageId] = useState('');
 
@@ -59,6 +59,7 @@ export default function UsersPage() {
       role: user.role,
       isActive: user.isActive,
       expiresAt: user.expiresAt ? new Date(user.expiresAt).toISOString().slice(0, 16) : '',
+      maxConnections: user.entitlement?.maxConnections?.toString() || '',
     });
   };
 
@@ -66,6 +67,7 @@ export default function UsersPage() {
     e.preventDefault();
     const body: any = { username: editForm.username, email: editForm.email || undefined, role: editForm.role, isActive: editForm.isActive, expiresAt: editForm.expiresAt || null };
     if (editForm.password) body.password = editForm.password;
+    if (editForm.maxConnections) body.maxConnections = parseInt(editForm.maxConnections, 10);
     await api(`/users/${editingId}`, { method: 'PATCH', body: JSON.stringify(body) });
     setEditingId(null);
     load();
@@ -135,6 +137,8 @@ export default function UsersPage() {
             <input type="checkbox" checked={editForm.isActive} onChange={(e) => setEditForm({ ...editForm, isActive: e.target.checked })} />
             Active
           </label>
+          <label className="block text-sm font-medium">Max Connections</label>
+          <Input type="number" min="1" placeholder="Max Connections" value={editForm.maxConnections} onChange={(e) => setEditForm({ ...editForm, maxConnections: e.target.value })} />
           <label className="block text-sm font-medium">Expires At (leave blank for never)</label>
           <Input type="datetime-local" value={editForm.expiresAt} onChange={(e) => setEditForm({ ...editForm, expiresAt: e.target.value })} />
           <div className="flex gap-2">
@@ -167,6 +171,7 @@ export default function UsersPage() {
           { key: 'owner', header: 'Owner', hideOnMobile: true, render: (u) => u.reseller ? u.reseller.companyName : 'Panel' },
           { key: 'role', header: 'Role', render: (u) => <Badge variant={u.role === 'ADMIN' ? 'default' : 'secondary'}>{u.role}</Badge> },
           { key: 'package', header: 'Package', render: (u) => u.entitlement?.package?.name || '-' },
+          { key: 'connections', header: 'Connections', render: (u) => u.entitlement ? `${u._count?.vpnSessions || 0} / ${u.entitlement.maxConnections}` : '-' },
           { key: 'isActive', header: 'Status', render: (u) => {
             const expired = u.expiresAt && new Date(u.expiresAt) < new Date();
             if (!u.isActive) return <Badge variant="destructive">Inactive</Badge>;

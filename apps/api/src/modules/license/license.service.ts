@@ -7,6 +7,7 @@ import {
   HEARTBEAT_INTERVAL,
   OFFLINE_GRACE_PERIOD,
   PANEL_GRACE_PERIOD_DAYS,
+  TIER_FEATURES,
 } from './license.constants';
 
 // Dynamic import for the ESM SDK — use Function to prevent TS from converting to require()
@@ -137,15 +138,23 @@ export class LicenseService implements OnModuleInit {
     return this.lf?.isValid() ?? false;
   }
 
+  private resolveFeatures(): string[] {
+    if (!this.lf) return [];
+    const info = this.lf.getLicenseInfo();
+    // Extract SDK features
+    let sdkFeatures: string[] = [];
+    if (Array.isArray(info.features)) sdkFeatures = info.features;
+    else if (info.features && typeof info.features === 'object') sdkFeatures = Object.keys(info.features);
+    // Derive features from tier if SDK returned none
+    const tier = (info.tier || this.statusData?.tier || '').toLowerCase();
+    const tierFeatures = TIER_FEATURES[tier] || [];
+    // Merge and deduplicate
+    return [...new Set([...sdkFeatures, ...tierFeatures])];
+  }
+
   hasFeature(slug: string): boolean {
     if (!this.lf?.isValid()) return false;
-    // Don't use SDK's hasFeature() — it crashes when features is an object (not array).
-    // Check manually using getLicenseInfo().
-    const info = this.lf.getLicenseInfo();
-    const features = info.features;
-    if (Array.isArray(features)) return features.includes(slug);
-    if (features && typeof features === 'object') return slug in features;
-    return false;
+    return this.resolveFeatures().includes(slug);
   }
 
   private async updateGracePeriod(isActive: boolean): Promise<{ gracePeriodEndsAt: string | null; locked: boolean }> {
@@ -194,10 +203,7 @@ export class LicenseService implements OnModuleInit {
     }
 
     const info: LicenseInfoType = this.lf.getLicenseInfo();
-    // SDK returns features as Record<string, unknown>; convert keys to string[]
-    const features = info.features && typeof info.features === 'object' && !Array.isArray(info.features)
-      ? Object.keys(info.features)
-      : Array.isArray(info.features) ? info.features : [];
+    const features = this.resolveFeatures();
     const isActive = info.status === 'active';
     const grace = await this.updateGracePeriod(isActive);
     return {
@@ -219,9 +225,7 @@ export class LicenseService implements OnModuleInit {
     }
 
     const info: LicenseInfoType = this.lf.getLicenseInfo();
-    const features = info.features && typeof info.features === 'object' && !Array.isArray(info.features)
-      ? Object.keys(info.features)
-      : Array.isArray(info.features) ? info.features : [];
+    const features = this.resolveFeatures();
     const isActive = info.status === 'active';
     const grace = await this.updateGracePeriod(isActive);
     return { valid: info.valid, status: info.status, features, ...grace };

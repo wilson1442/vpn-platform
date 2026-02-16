@@ -158,6 +158,27 @@ export class SessionsService {
     }
   }
 
+  async syncSessions(vpnNodeId: string, connectedClients: string[]) {
+    const activeSessions = await this.prisma.vpnSession.findMany({
+      where: { vpnNodeId, disconnectedAt: null },
+    });
+
+    const connectedSet = new Set(connectedClients);
+    const ghostSessions = activeSessions.filter(
+      (s) => !connectedSet.has(s.commonName),
+    );
+
+    if (ghostSessions.length > 0) {
+      await this.prisma.vpnSession.updateMany({
+        where: { id: { in: ghostSessions.map((s) => s.id) } },
+        data: { disconnectedAt: new Date(), kickedReason: 'sync' },
+      });
+      this.logger.log(
+        `Synced ${ghostSessions.length} ghost session(s) on node ${vpnNodeId}`,
+      );
+    }
+  }
+
   async cleanupStaleSessions() {
     // Mark sessions as disconnected if their node hasn't sent a heartbeat in 5 minutes
     const threshold = new Date(Date.now() - 5 * 60 * 1000);

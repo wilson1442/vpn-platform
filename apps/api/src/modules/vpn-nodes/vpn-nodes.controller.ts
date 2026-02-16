@@ -56,6 +56,7 @@ export class VpnNodesController {
       netTxBps?: number;
       totalBytesRx?: number;
       totalBytesTx?: number;
+      connectedClients?: string[];
     },
   ) {
     return this.vpnNodes.heartbeat(req.vpnNode.id, body);

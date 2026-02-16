@@ -1,6 +1,7 @@
 import { Controller, Get, Post, Patch, Delete, Param, Body, Query, ForbiddenException, NotFoundException, BadRequestException } from '@nestjs/common';
 import { Role } from '@prisma/client';
 import { Roles, CurrentUser } from '../../common/decorators';
+import { RequireFeature } from '../license/license.constants';
 import { EntitlementService } from './entitlement.service';
 import { CreditLedgerService } from './credit-ledger.service';
 import { InvoiceService } from './invoice.service';
@@ -19,6 +20,7 @@ export class BillingController {
   // Credit Packages
   @Get('credit-packages')
   @Roles(Role.ADMIN, Role.RESELLER)
+  @RequireFeature('resellers')
   findCreditPackages() {
     return this.prisma.creditPackage.findMany({
       where: { isActive: true },
@@ -28,6 +30,7 @@ export class BillingController {
 
   @Post('credit-packages')
   @Roles(Role.ADMIN)
+  @RequireFeature('resellers')
   createCreditPackage(@Body() body: { name: string; credits: number; price: number; description?: string }) {
     return this.prisma.creditPackage.create({
       data: {
@@ -41,6 +44,7 @@ export class BillingController {
 
   @Patch('credit-packages/:id')
   @Roles(Role.ADMIN)
+  @RequireFeature('resellers')
   async updateCreditPackage(@Param('id') id: string, @Body() body: { name?: string; credits?: number; price?: number; description?: string; isActive?: boolean }) {
     const pkg = await this.prisma.creditPackage.findUnique({ where: { id } });
     if (!pkg) throw new NotFoundException('Credit package not found');
@@ -49,6 +53,7 @@ export class BillingController {
 
   @Delete('credit-packages/:id')
   @Roles(Role.ADMIN)
+  @RequireFeature('resellers')
   async deleteCreditPackage(@Param('id') id: string) {
     const pkg = await this.prisma.creditPackage.findUnique({ where: { id } });
     if (!pkg) throw new NotFoundException('Credit package not found');
@@ -141,18 +146,21 @@ export class BillingController {
   // Credits
   @Post('credits/add')
   @Roles(Role.ADMIN)
+  @RequireFeature('resellers')
   async addCredits(@Body() body: { resellerId: string; amount: number; description?: string }) {
     return this.credits.addCredits(body.resellerId, body.amount, body.description || 'Credit added by admin');
   }
 
   @Post('credits/deduct')
   @Roles(Role.ADMIN)
+  @RequireFeature('resellers')
   async deductCredits(@Body() body: { resellerId: string; amount: number; description?: string }) {
     return this.credits.deductCredits(body.resellerId, body.amount, body.description || 'Credit deducted by admin');
   }
 
   @Get('credits/logs')
   @Roles(Role.ADMIN, Role.RESELLER)
+  @RequireFeature('resellers')
   async getCreditLogs(
     @CurrentUser() actor: any,
     @Query('limit') limit?: string,

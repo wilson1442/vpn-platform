@@ -28,7 +28,14 @@
       "Bash(node -e:*)",
       "Bash(sshpass:*)",
       "Bash(systemctl restart:*)",
-      "Bash(pnpm db:seed:*)"
+      "Bash(pnpm db:seed:*)",
+      "Bash(pnpm add:*)",
+      "Bash(pnpm remove:*)",
+      "Bash(npm install:*)",
+      "Bash(npm run build:*)",
+      "Bash(npm pack:*)",
+      "Bash(pnpm build:*)",
+      "Bash(npx turbo build)"
     ]
   }
 }

@@ -8,6 +8,7 @@ WORKDIR /app
 COPY pnpm-workspace.yaml package.json pnpm-lock.yaml ./
 COPY packages/shared/package.json ./packages/shared/
 COPY apps/api/package.json ./apps/api/
+COPY apps/api/licenseforge-node-sdk-0.1.0.tgz ./apps/api/
 RUN pnpm install --frozen-lockfile
 
 # -- Build shared --

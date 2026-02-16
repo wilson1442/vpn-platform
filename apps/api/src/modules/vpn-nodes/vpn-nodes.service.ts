@@ -1,12 +1,16 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, Logger } from '@nestjs/common';
 import { PrismaService } from '../../common/prisma.service';
 import { StatsService } from '../stats/stats.service';
+import { SessionsService } from '../sessions/sessions.service';
 
 @Injectable()
 export class VpnNodesService {
+  private readonly logger = new Logger(VpnNodesService.name);
+
   constructor(
     private prisma: PrismaService,
     private stats: StatsService,
+    private sessions: SessionsService,
   ) {}
 
   findAll() {
@@ -45,6 +49,7 @@ export class VpnNodesService {
       netTxBps?: number;
       totalBytesRx?: number;
       totalBytesTx?: number;
+      connectedClients?: string[];
     },
   ) {
     const node = await this.prisma.vpnNode.update({
@@ -61,6 +66,15 @@ export class VpnNodesService {
       totalBytesRx: data.totalBytesRx,
       totalBytesTx: data.totalBytesTx,
     });
+
+    // Sync sessions: mark ghost sessions as disconnected
+    if (data.connectedClients) {
+      try {
+        await this.sessions.syncSessions(nodeId, data.connectedClients);
+      } catch (err) {
+        this.logger.error(`Session sync failed for node ${nodeId}: ${err}`);
+      }
+    }
 
     return node;
   }

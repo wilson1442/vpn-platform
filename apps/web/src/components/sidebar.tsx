@@ -23,14 +23,16 @@ const adminNav: NavItem[] = [
   { label: 'Resellers', href: '/admin/resellers', feature: 'resellers' },
   { label: 'Users', href: '/admin/users' },
   { label: 'VPN Nodes', href: '/admin/vpn-nodes' },
+  { label: 'Connections', href: '/admin/connections' },
   { label: 'Packages', href: '/admin/packages' },
-  { label: 'Credit Packages', href: '/admin/credit-packages' },
+  { label: 'Credit Packages', href: '/admin/credit-packages', feature: 'resellers' },
   { label: 'Billing', href: '/admin/billing' },
   { label: 'Payment Gateways', href: '/admin/payment-gateways' },
   { label: 'Audit Log', href: '/admin/audit-log' },
   {
     label: 'Logs',
     href: '/admin/logs',
+    feature: 'resellers',
     children: [
       { label: 'Credit Logs', href: '/admin/logs/credit-logs' },
     ],

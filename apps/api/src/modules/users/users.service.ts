@@ -24,9 +24,10 @@ export class UsersService {
         expiresAt: true,
         createdAt: true,
         entitlementId: true,
-        entitlement: { select: { package: { select: { name: true } } } },
+        entitlement: { select: { maxConnections: true, package: { select: { name: true } } } },
         reseller: { select: { companyName: true, user: { select: { username: true } } } },
         shortUrls: { select: { code: true, shortUrl: true, vpnNode: { select: { name: true } } } },
+        _count: { select: { vpnSessions: { where: { disconnectedAt: null } } } },
       },
       orderBy: { createdAt: 'desc' },
     });
@@ -83,7 +84,7 @@ export class UsersService {
     return user;
   }
 
-  async update(id: string, data: { username?: string; email?: string; password?: string; role?: Role; isActive?: boolean; expiresAt?: string | null }, actor: { sub: string; role: string; resellerId?: string }) {
+  async update(id: string, data: { username?: string; email?: string; password?: string; role?: Role; isActive?: boolean; expiresAt?: string | null; maxConnections?: number }, actor: { sub: string; role: string; resellerId?: string }) {
     const user = await this.prisma.user.findUnique({ where: { id } });
     if (!user) throw new NotFoundException('User not found');
     await this.assertScope(actor, user);
@@ -95,6 +96,13 @@ export class UsersService {
     if (data.role) updateData.role = data.role;
     if (data.isActive !== undefined) updateData.isActive = data.isActive;
     if (data.expiresAt !== undefined) updateData.expiresAt = data.expiresAt ? new Date(data.expiresAt) : null;
+
+    if (data.maxConnections !== undefined && user.entitlementId) {
+      await this.prisma.entitlement.update({
+        where: { id: user.entitlementId },
+        data: { maxConnections: data.maxConnections },
+      });
+    }
 
     return this.prisma.user.update({
       where: { id },

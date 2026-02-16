@@ -148,7 +148,7 @@ model VpnSession {
   kickedReason   String?
 
   user        User        @relation(fields: [userId], references: [id])
-  vpnNode     VpnNode     @relation(fields: [vpnNodeId], references: [id])
+  vpnNode     VpnNode     @relation(fields: [vpnNodeId], references: [id], onDelete: Cascade)
   certificate Certificate? @relation(fields: [certificateId], references: [id])
 
   @@index([userId])

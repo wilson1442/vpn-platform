@@ -26,7 +26,7 @@ export class UsersController {
 
   @Patch(':id')
   @Roles(Role.ADMIN, Role.RESELLER)
-  update(@Param('id') id: string, @Body() body: { username?: string; email?: string; password?: string; role?: Role; isActive?: boolean; expiresAt?: string | null }, @CurrentUser() actor: any) {
+  update(@Param('id') id: string, @Body() body: { username?: string; email?: string; password?: string; role?: Role; isActive?: boolean; expiresAt?: string | null; maxConnections?: number }, @CurrentUser() actor: any) {
     return this.users.update(id, body, actor);
   }
 

@@ -17,6 +17,11 @@ export const HEARTBEAT_INTERVAL = 21600000; // 6 hours
 export const OFFLINE_GRACE_PERIOD = 72; // hours
 export const PANEL_GRACE_PERIOD_DAYS = 7;
 
+export const TIER_FEATURES: Record<string, string[]> = {
+  'vpn-pro': ['resellers'],
+  'vpn-provider': [],
+};
+
 export const REQUIRE_FEATURE_KEY = 'requireFeature';
 
 export const RequireFeature = (slug: string) => SetMetadata(REQUIRE_FEATURE_KEY, slug);
