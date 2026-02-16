@@ -298,3 +298,14 @@ model ShortUrl {
   @@unique([userId, vpnNodeId])
   @@index([userId])
 }
+
+model EmailTemplate {
+  id          String   @id @default(uuid())
+  name        String   @unique
+  subject     String
+  htmlBody    String
+  description String   @default("")
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}

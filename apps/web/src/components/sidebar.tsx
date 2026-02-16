@@ -22,6 +22,7 @@ import {
   Settings,
   FileKey,
   Activity,
+  Mail,
   LogOut,
   ChevronRight,
   type LucideIcon,
@@ -57,6 +58,7 @@ const adminNav: NavItem[] = [
       { label: 'User Logs', href: '/admin/logs/user-logs' },
     ],
   },
+  { label: 'Email Templates', href: '/admin/email-templates', icon: Mail },
   { label: 'Settings', href: '/admin/settings', icon: Settings },
 ];
 

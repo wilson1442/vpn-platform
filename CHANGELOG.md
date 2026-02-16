@@ -1,5 +1,15 @@
 # Changelog
 
+## v0.0.7
+
+- Add Email Templates management to admin panel with full CRUD
+- Rich WYSIWYG email editor powered by TipTap with formatting toolbar (bold, italic, underline, headings, lists, alignment, color, font size, links, images)
+- Template variable system with insertable field tags (username, email, site_name, expiry_date, etc.)
+- Preview rendered templates with sample data and send test emails via SMTP
+- Toggle template active/inactive status from the list view
+- Searchable and sortable email templates table
+- Database migration for EmailTemplate model
+
 ## v0.0.6
 
 - Add Payment Gateways to Settings page (Stripe, PayPal, Authorize.net, Cash App, Zelle, Venmo)

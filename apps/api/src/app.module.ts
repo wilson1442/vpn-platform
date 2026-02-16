@@ -15,6 +15,7 @@ import { SettingsModule } from './modules/settings/settings.module';
 import { StatsModule } from './modules/stats/stats.module';
 import { ProfileModule } from './modules/profile/profile.module';
 import { LicenseModule } from './modules/license/license.module';
+import { EmailTemplatesModule } from './modules/email-templates/email-templates.module';
 
 @Module({
   imports: [
@@ -39,6 +40,7 @@ import { LicenseModule } from './modules/license/license.module';
     StatsModule,
     ProfileModule,
     LicenseModule,
+    EmailTemplatesModule,
   ],
 })
 export class AppModule {}
