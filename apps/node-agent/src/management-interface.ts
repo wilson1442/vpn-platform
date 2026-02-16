@@ -37,12 +37,12 @@ export async function killClient(commonName: string): Promise<string> {
 }
 
 export async function getClientBandwidth(): Promise<
-  { commonName: string; bytesReceived: number; bytesSent: number }[]
+  { commonName: string; realAddress: string; bytesReceived: number; bytesSent: number; connectedSinceEpoch: number }[]
 > {
   try {
     const status = await sendCommand('status 2');
     const lines = status.split('\n');
-    const clients: { commonName: string; bytesReceived: number; bytesSent: number }[] = [];
+    const clients: { commonName: string; realAddress: string; bytesReceived: number; bytesSent: number; connectedSinceEpoch: number }[] = [];
     for (const line of lines) {
       if (!line.startsWith('CLIENT_LIST\t')) continue;
       const fields = line.split('\t');
@@ -51,8 +51,10 @@ export async function getClientBandwidth(): Promise<
       if (fields.length < 8) continue;
       clients.push({
         commonName: fields[1],
+        realAddress: fields[2] || 'unknown',
         bytesReceived: parseInt(fields[5], 10) || 0,
         bytesSent: parseInt(fields[6], 10) || 0,
+        connectedSinceEpoch: parseInt(fields[8], 10) || 0,
       });
     }
     return clients;

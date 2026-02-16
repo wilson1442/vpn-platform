@@ -158,12 +158,18 @@ export class SessionsService {
     }
   }
 
-  async syncSessions(vpnNodeId: string, connectedClients: string[]) {
+  async syncSessions(
+    vpnNodeId: string,
+    connectedClients: { commonName: string; realAddress: string; connectedSinceEpoch: number }[],
+  ) {
     const activeSessions = await this.prisma.vpnSession.findMany({
       where: { vpnNodeId, disconnectedAt: null },
     });
 
-    const connectedSet = new Set(connectedClients);
+    const connectedSet = new Set(connectedClients.map((c) => c.commonName));
+    const dbSet = new Set(activeSessions.map((s) => s.commonName));
+
+    // Remove ghost sessions (in DB but not connected)
     const ghostSessions = activeSessions.filter(
       (s) => !connectedSet.has(s.commonName),
     );
@@ -176,6 +182,36 @@ export class SessionsService {
       this.logger.log(
         `Synced ${ghostSessions.length} ghost session(s) on node ${vpnNodeId}`,
       );
+    }
+
+    // Create missing sessions (connected but not in DB)
+    const missingClients = connectedClients.filter((c) => !dbSet.has(c.commonName));
+    for (const client of missingClients) {
+      try {
+        const user = await this.prisma.user.findUnique({
+          where: { username: client.commonName },
+        });
+        if (!user) continue;
+
+        const connectedAt = client.connectedSinceEpoch > 0
+          ? new Date(client.connectedSinceEpoch * 1000)
+          : new Date();
+
+        await this.prisma.vpnSession.create({
+          data: {
+            userId: user.id,
+            vpnNodeId,
+            commonName: client.commonName,
+            realAddress: client.realAddress,
+            connectedAt,
+          },
+        });
+        this.logger.log(
+          `Created missing session for ${client.commonName} on node ${vpnNodeId}`,
+        );
+      } catch (err) {
+        this.logger.error(`Failed to create session for ${client.commonName}: ${err}`);
+      }
     }
   }
 

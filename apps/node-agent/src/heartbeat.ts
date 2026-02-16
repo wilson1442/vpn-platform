@@ -30,7 +30,11 @@ export function startHeartbeat() {
         totalBytesTx += c.bytesSent;
       }
 
-      const connectedClients = clients.map((c) => c.commonName);
+      const connectedClients = clients.map((c) => ({
+        commonName: c.commonName,
+        realAddress: c.realAddress,
+        connectedSinceEpoch: c.connectedSinceEpoch,
+      }));
 
       const resp = await fetch(`${API_BASE_URL}/vpn-nodes/heartbeat`, {
         method: 'POST',

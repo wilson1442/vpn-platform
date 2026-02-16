@@ -49,7 +49,7 @@ export class VpnNodesService {
       netTxBps?: number;
       totalBytesRx?: number;
       totalBytesTx?: number;
-      connectedClients?: string[];
+      connectedClients?: (string | { commonName: string; realAddress?: string; connectedSinceEpoch?: number })[];
     },
   ) {
     const node = await this.prisma.vpnNode.update({
@@ -67,10 +67,28 @@ export class VpnNodesService {
       totalBytesTx: data.totalBytesTx,
     });
 
-    // Sync sessions: mark ghost sessions as disconnected
-    if (data.connectedClients) {
+    // Sync sessions using the best available data:
+    // 1. If connectedClients list has entries → precise sync (remove ghosts, create missing)
+    // 2. If activeConnections === 0 → all sessions on this node are ghosts, clean them up
+    // 3. Otherwise (no client list, but activeConnections > 0) → can't determine which
+    //    sessions are real, so leave them alone
+    const hasClientList = Array.isArray(data.connectedClients) && data.connectedClients.length > 0;
+
+    if (hasClientList) {
       try {
-        await this.sessions.syncSessions(nodeId, data.connectedClients);
+        const clients = data.connectedClients!.map((c) =>
+          typeof c === 'string'
+            ? { commonName: c, realAddress: 'unknown', connectedSinceEpoch: 0 }
+            : { commonName: c.commonName, realAddress: c.realAddress || 'unknown', connectedSinceEpoch: c.connectedSinceEpoch || 0 },
+        );
+        await this.sessions.syncSessions(nodeId, clients);
+      } catch (err) {
+        this.logger.error(`Session sync failed for node ${nodeId}: ${err}`);
+      }
+    } else if (data.activeConnections === 0) {
+      // Node reports zero connections — mark all DB sessions for this node as disconnected
+      try {
+        await this.sessions.syncSessions(nodeId, []);
       } catch (err) {
         this.logger.error(`Session sync failed for node ${nodeId}: ${err}`);
       }
