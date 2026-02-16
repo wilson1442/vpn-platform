@@ -516,6 +516,7 @@ crl-verify /etc/openvpn/crl.pem
 
 verify-client-cert none
 username-as-common-name
+duplicate-cn
 
 topology subnet
 server 10.8.0.0 255.255.255.0
