@@ -228,7 +228,7 @@ export function Sidebar() {
               <img
                 src={`${API_URL}/settings/logo`}
                 alt="Logo"
-                className="h-8 w-8 rounded-lg object-contain"
+                className="h-16 w-16 rounded-lg object-contain"
               />
             ) : (
               <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-indigo-500 to-blue-600 shadow-lg shadow-indigo-500/20">

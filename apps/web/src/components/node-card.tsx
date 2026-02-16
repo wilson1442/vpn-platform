@@ -65,11 +65,11 @@ export function NodeCard({ node }: { node: NodeStats }) {
         <div className="mt-3 flex justify-between text-xs text-muted-foreground">
           <span className="flex items-center gap-1.5">
             <span className="inline-block h-1.5 w-1.5 rounded-full bg-indigo-500" />
-            RX: {formatBytes(node.vpnRxBps)}
+            RX: {formatBytes(node.vpnRxBps || node.netRxBps)}
           </span>
           <span className="flex items-center gap-1.5">
             <span className="inline-block h-1.5 w-1.5 rounded-full bg-cyan-500" />
-            TX: {formatBytes(node.vpnTxBps)}
+            TX: {formatBytes(node.vpnTxBps || node.netTxBps)}
           </span>
         </div>
       </CardContent>
